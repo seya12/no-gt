@@ -8,6 +8,8 @@ const nextConfig = {
       },
     ],
   },
-}
+  experimental: {
+  },
+};
 
-export default nextConfig 
+export default nextConfig; 
