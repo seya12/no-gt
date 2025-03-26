@@ -1,21 +1,44 @@
-import { PrismaClient } from '@prisma/client'
+/**
+ * This script checks if the database is available and working correctly.
+ * It's used both for local development and in the build process.
+ */
 
-const prisma = new PrismaClient()
+import { prisma } from "../src/lib/db"
 
-async function checkDatabase() {
+async function main() {
+  console.log("🔍 Checking database connection...")
+  
   try {
-    // Try to connect and perform a simple query
+    // Try to connect to the database
     await prisma.$connect()
-    // Try to query the User table
-    await prisma.user.findFirst()
-    console.log('✅ Database connection successful')
-    process.exit(0)
+    console.log("✅ Database connection successful!")
+    
+    // Try to execute a simple query
+    const startTime = Date.now()
+    await prisma.$queryRaw`SELECT 1`
+    const duration = Date.now() - startTime
+    
+    console.log(`⏱️ Query latency: ${duration}ms`)
+    
+    // Check if there are any users (helpful to know if setup is needed)
+    const userCount = await prisma.user.count()
+    console.log(`👤 User count: ${userCount}`)
+    
+    return { success: true }
   } catch (error) {
-    console.error('❌ Database connection failed:', error)
+    console.error("❌ Database connection failed:", error)
     process.exit(1)
   } finally {
     await prisma.$disconnect()
   }
 }
 
-checkDatabase() 
+main()
+  .then(() => {
+    console.log("✨ All checks passed!")
+    process.exit(0)
+  })
+  .catch((error) => {
+    console.error("❌ Checks failed:", error)
+    process.exit(1)
+  }) 

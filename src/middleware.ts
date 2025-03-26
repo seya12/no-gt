@@ -3,6 +3,7 @@ import { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
 
 export async function middleware(request: NextRequest) {
+  // Check for token with the configured secret
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
@@ -22,12 +23,16 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname === '/dashboard' ||
     request.nextUrl.pathname.startsWith('/dashboard/') ||
     request.nextUrl.pathname === '/profile' ||
-    request.nextUrl.pathname.startsWith('/profile/')
+    request.nextUrl.pathname.startsWith('/profile/') ||
+    request.nextUrl.pathname.startsWith('/workout') ||
+    request.nextUrl.pathname.startsWith('/exercises')
   
+  // Always allow API and static routes
   if (isApiOrStaticRoute) {
     return NextResponse.next()
   }
   
+  // Check if the route is in the public routes list
   const isPublicRoute = publicRoutes.some(route => 
     request.nextUrl.pathname.startsWith(route)
   )
@@ -43,6 +48,7 @@ export async function middleware(request: NextRequest) {
   // Require authentication for protected routes
   if (isProtectedRoute && !token) {
     const url = new URL('/login', request.url)
+    // Save the requested URL to redirect back after login
     url.searchParams.set('callbackUrl', request.nextUrl.pathname)
     return NextResponse.redirect(url)
   }
@@ -50,6 +56,7 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next()
 }
 
+// Define routes to apply the middleware to
 export const config = {
   matcher: [
     /*

@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { authConfig } from "@/lib/auth/auth.config"
 import { redirect } from "next/navigation"
+import Image from "next/image"
 
 export default async function ProfilePage() {
   const session = await getServerSession(authConfig)
@@ -22,15 +23,20 @@ export default async function ProfilePage() {
           <div className="space-y-4">
             <div className="flex items-center space-x-4">
               {session.user?.image && (
-                <img 
-                  src={session.user.image} 
-                  alt={session.user?.name || "Profile"} 
-                  className="rounded-full h-16 w-16"
-                />
+                <div className="relative h-16 w-16 rounded-full overflow-hidden">
+                  <Image 
+                    src={session.user.image}
+                    alt={session.user?.name || "Profile"}
+                    fill
+                    sizes="64px"
+                    className="object-cover"
+                  />
+                </div>
               )}
               <div>
                 <p className="font-medium">{session.user?.name || "User"}</p>
                 <p className="text-sm text-muted-foreground">{session.user?.email || "No email"}</p>
+                <p className="text-xs text-muted-foreground">User ID: {session.user?.id}</p>
               </div>
             </div>
           </div>
