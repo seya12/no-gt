@@ -12,7 +12,7 @@ interface NewWorkoutSessionPageProps {
 export default async function NewWorkoutSessionPage({
   searchParams,
 }: NewWorkoutSessionPageProps) {
-  const { planId } = searchParams
+  const { planId } = await searchParams
   
   if (!planId) {
     redirect("/workout/start")

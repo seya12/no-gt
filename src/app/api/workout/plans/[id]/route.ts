@@ -23,7 +23,9 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authConfig)
+  const session = await getServerSession(authConfig);
+  const { id } = await params;
+
   
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -32,7 +34,7 @@ export async function GET(
   try {
     const workoutPlan = await prisma.workoutPlan.findUnique({
       where: {
-        id: params.id,
+        id: id,
         userId: session.user.id,
       },
       include: {
@@ -64,6 +66,7 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authConfig)
+  const { id } = await params;
   
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -73,7 +76,7 @@ export async function PATCH(
     // Check if the workout plan exists and belongs to the user
     const existingPlan = await prisma.workoutPlan.findUnique({
       where: {
-        id: params.id,
+        id: id,
         userId: session.user.id,
       },
       include: {
@@ -103,7 +106,7 @@ export async function PATCH(
     const updatedPlan = await prisma.$transaction(async (tx) => {
       // Update the plan name
       await tx.workoutPlan.update({
-        where: { id: params.id },
+        where: { id: id },
         data: { name },
       })
       
@@ -113,7 +116,7 @@ export async function PATCH(
       // Prepare exercises to update or create
       const exercisesToUpsert = exercises.filter(e => e.id).map(e => ({
         id: e.id as string,
-        workoutPlanId: params.id,
+        workoutPlanId: id,
         exerciseId: e.exerciseId,
         defaultSets: e.defaultSets,
         defaultReps: e.defaultReps,
@@ -124,7 +127,7 @@ export async function PATCH(
       const exercisesToCreate = exercises
         .filter(e => !e.id)
         .map(e => ({
-          workoutPlanId: params.id,
+          workoutPlanId: id,
           exerciseId: e.exerciseId,
           defaultSets: e.defaultSets,
           defaultReps: e.defaultReps,
@@ -167,7 +170,7 @@ export async function PATCH(
       
       // Return the updated plan with exercises
       return tx.workoutPlan.findUnique({
-        where: { id: params.id },
+        where: { id: id },
         include: {
           exercises: {
             include: {
@@ -194,6 +197,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authConfig)
+  const { id } = await params;
   
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -203,7 +207,7 @@ export async function DELETE(
     // Check if the workout plan exists and belongs to the user
     const existingPlan = await prisma.workoutPlan.findUnique({
       where: {
-        id: params.id,
+        id: id,
         userId: session.user.id,
       },
     })
@@ -215,7 +219,7 @@ export async function DELETE(
     // Delete the workout plan (cascades to WorkoutPlanExercise)
     await prisma.workoutPlan.delete({
       where: {
-        id: params.id,
+        id: id,
       },
     })
     

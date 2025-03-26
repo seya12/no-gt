@@ -10,6 +10,8 @@ export default async function EditWorkoutPlanPage({
   params: { id: string }
 }) {
   const session = await getServerSession(authConfig)
+  const { id } = await params;
+
   
   if (!session?.user) {
     redirect("/api/auth/signin")
@@ -18,7 +20,7 @@ export default async function EditWorkoutPlanPage({
   // Fetch the workout plan with exercises
   const workoutPlan = await prisma.workoutPlan.findUnique({
     where: {
-      id: params.id,
+      id: id,
       userId: session.user.id,
     },
     include: {

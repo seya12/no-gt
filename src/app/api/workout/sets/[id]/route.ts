@@ -18,6 +18,7 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authConfig)
+  const { id } = await params;
   
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -27,7 +28,7 @@ export async function PATCH(
     // Find the set and check if it belongs to the user
     const set = await prisma.set.findFirst({
       where: {
-        id: params.id,
+        id: id,
         workoutSession: {
           userId: session.user.id,
         },
@@ -56,7 +57,7 @@ export async function PATCH(
     // Update the set
     const updatedSet = await prisma.set.update({
       where: {
-        id: params.id,
+        id: id,
       },
       data: result.data,
     })

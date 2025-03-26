@@ -14,6 +14,7 @@ export default async function CompleteWorkoutSessionPage({
   params: { id: string }
 }) {
   const session = await getServerSession(authConfig)
+  const { id } = await params
   
   if (!session?.user) {
     redirect("/api/auth/signin")
@@ -22,7 +23,7 @@ export default async function CompleteWorkoutSessionPage({
   // Fetch the workout session with all related data
   const workoutSession = await prisma.workoutSession.findUnique({
     where: {
-      id: params.id,
+      id: id,
       userId: session.user.id,
     },
     include: {

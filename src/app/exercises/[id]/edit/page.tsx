@@ -12,6 +12,7 @@ export default async function EditExercisePage({
   params: { id: string }
 }) {
   const session = await getServerSession(authConfig)
+  const { id } = await params;
   
   if (!session) {
     redirect("/login")
@@ -20,7 +21,7 @@ export default async function EditExercisePage({
   // Fetch the exercise by ID
   const exercise = await prisma.exercise.findUnique({
     where: {
-      id: params.id,
+      id: id,
       userId: session.user.id,
     },
   })

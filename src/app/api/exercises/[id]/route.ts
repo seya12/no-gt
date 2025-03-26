@@ -16,6 +16,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authConfig)
+  const { id } = await params;
   
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -24,7 +25,7 @@ export async function GET(
   try {
     const exercise = await prisma.exercise.findUnique({
       where: {
-        id: params.id,
+        id: id,
         userId: session.user.id,
       },
     })
@@ -49,6 +50,7 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authConfig)
+  const { id } = await params;
   
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -58,7 +60,7 @@ export async function PATCH(
     // Check if the exercise exists and belongs to the user
     const existingExercise = await prisma.exercise.findUnique({
       where: {
-        id: params.id,
+        id: id,
         userId: session.user.id,
       },
     })
@@ -84,7 +86,7 @@ export async function PATCH(
     // Update the exercise
     const updatedExercise = await prisma.exercise.update({
       where: {
-        id: params.id,
+        id: id,
       },
       data: {
         name,
@@ -108,6 +110,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authConfig)
+  const { id } = await params;
   
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -117,7 +120,7 @@ export async function DELETE(
     // Check if the exercise exists and belongs to the user
     const existingExercise = await prisma.exercise.findUnique({
       where: {
-        id: params.id,
+        id: id,
         userId: session.user.id,
       },
     })
@@ -129,7 +132,7 @@ export async function DELETE(
     // Delete the exercise
     await prisma.exercise.delete({
       where: {
-        id: params.id,
+        id: id,
       },
     })
     
