@@ -13,10 +13,10 @@ const exerciseSchema = z.object({
 // GET /api/exercises/[id] - Get a specific exercise
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authConfig)
-  const { id } = await params;
+  const { id } = await params
   
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -47,10 +47,10 @@ export async function GET(
 // PATCH /api/exercises/[id] - Update a specific exercise
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authConfig)
-  const { id } = await params;
+  const { id } = await params
   
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -107,10 +107,10 @@ export async function PATCH(
 // DELETE /api/exercises/[id] - Delete a specific exercise
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authConfig)
-  const { id } = await params;
+  const { id } = await params
   
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

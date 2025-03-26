@@ -4,9 +4,9 @@ import { prisma } from "@/lib/db"
 import { authConfig } from "@/lib/auth/auth.config"
 
 interface NewWorkoutSessionPageProps {
-  searchParams: {
+  searchParams: Promise<{
     planId?: string
-  }
+  }>
 }
 
 export default async function NewWorkoutSessionPage({

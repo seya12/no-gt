@@ -11,7 +11,7 @@ import { Check, Home } from "lucide-react"
 export default async function CompleteWorkoutSessionPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
   const session = await getServerSession(authConfig)
   const { id } = await params

@@ -9,7 +9,7 @@ import { notFound } from "next/navigation"
 export default async function EditExercisePage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
   const session = await getServerSession(authConfig)
   const { id } = await params;

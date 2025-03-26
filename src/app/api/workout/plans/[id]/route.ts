@@ -21,7 +21,7 @@ const workoutPlanSchema = z.object({
 // GET /api/workout/plans/[id] - Get a specific workout plan
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authConfig);
   const { id } = await params;
@@ -63,7 +63,7 @@ export async function GET(
 // PATCH /api/workout/plans/[id] - Update a specific workout plan
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authConfig)
   const { id } = await params;
@@ -194,7 +194,7 @@ export async function PATCH(
 // DELETE /api/workout/plans/[id] - Delete a specific workout plan
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authConfig)
   const { id } = await params;

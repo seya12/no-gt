@@ -7,7 +7,7 @@ import { authConfig } from "@/lib/auth/auth.config"
 export default async function EditWorkoutPlanPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
   const session = await getServerSession(authConfig)
   const { id } = await params;

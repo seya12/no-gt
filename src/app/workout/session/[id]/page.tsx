@@ -8,9 +8,9 @@ import { Check, Home, ArrowLeft } from "lucide-react"
 import { WorkoutSessionTracker } from "@/components/workout/session-tracker"
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function WorkoutSessionPage({
