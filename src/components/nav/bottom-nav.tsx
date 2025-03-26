@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Home, Dumbbell, PlusCircle, User } from "lucide-react"
+import { Home, Dumbbell, PlusCircle, User, ClipboardList } from "lucide-react"
 
 export function BottomNav() {
   const pathname = usePathname()
@@ -16,13 +16,19 @@ export function BottomNav() {
       active: pathname === "/"
     },
     {
-      name: "Workouts",
-      href: "/dashboard",
+      name: "Exercises",
+      href: "/exercises",
       icon: Dumbbell,
-      active: pathname === "/dashboard" || pathname.startsWith("/workout")
+      active: pathname.startsWith("/exercises")
     },
     {
-      name: "New",
+      name: "Plans",
+      href: "/workout/plans",
+      icon: ClipboardList,
+      active: pathname.startsWith("/workout/plans")
+    },
+    {
+      name: "Start",
       href: "/workout/start",
       icon: PlusCircle,
       active: pathname === "/workout/start"
@@ -37,7 +43,7 @@ export function BottomNav() {
 
   return (
     <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-background border-t border-border md:hidden">
-      <div className="grid h-full grid-cols-4">
+      <div className="grid h-full grid-cols-5">
         {navItems.map((item) => (
           <Link
             key={item.name}
