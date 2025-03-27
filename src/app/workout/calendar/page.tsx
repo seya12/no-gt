@@ -8,11 +8,16 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+interface CalendarPageProps {
+  searchParams: Promise<{
+    month?: string;
+    year?: string;
+  }>
+}
+
 export default async function CalendarPage({
   searchParams,
-}: {
-  searchParams: { month?: string; year?: string };
-}) {
+}: CalendarPageProps) {
   const session = await getServerSession(authConfig);
 
   if (!session?.user) {
@@ -21,11 +26,13 @@ export default async function CalendarPage({
 
   // Get current date or use the one from query params
   const today = new Date();
-  const month = searchParams.month 
-    ? parseInt(searchParams.month) - 1 
+  const { month: monthParam, year: yearParam } = await searchParams;
+  
+  const month = monthParam 
+    ? parseInt(monthParam) - 1 
     : today.getMonth();
-  const year = searchParams.year 
-    ? parseInt(searchParams.year) 
+  const year = yearParam 
+    ? parseInt(yearParam) 
     : today.getFullYear();
   
   const currentDate = new Date(year, month);
