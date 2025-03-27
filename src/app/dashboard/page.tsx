@@ -5,6 +5,39 @@ import Link from "next/link"
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 import { authConfig } from "@/lib/auth/auth.config"
+import { prisma } from "@/lib/db"
+import { format } from "date-fns"
+
+async function getRecentWorkouts(userId: string) {
+  return prisma.workoutSession.findMany({
+    where: { userId },
+    orderBy: { date: 'desc' },
+    take: 3,
+    include: {
+      workoutPlan: true,
+      sets: {
+        include: {
+          exercise: true,
+        },
+      },
+    },
+  });
+}
+
+async function getActivePlans(userId: string) {
+  return prisma.workoutPlan.findMany({
+    where: { userId },
+    orderBy: { updatedAt: 'desc' },
+    take: 3,
+    include: {
+      exercises: {
+        include: {
+          exercise: true,
+        },
+      },
+    },
+  });
+}
 
 export default async function DashboardPage() {
   const session = await getServerSession(authConfig)
@@ -13,6 +46,9 @@ export default async function DashboardPage() {
     redirect("/login")
   }
   
+  const recentWorkouts = await getRecentWorkouts(session.user.id);
+  const activePlans = await getActivePlans(session.user.id);
+
   return (
     <div className="container mx-auto p-4 space-y-6">
       {/* Quick Actions */}
@@ -47,10 +83,25 @@ export default async function DashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {/* Placeholder for recent workouts */}
-            <div className="text-sm text-muted-foreground text-center py-4">
-              No recent workouts
-            </div>
+            {recentWorkouts.length > 0 ? (
+              recentWorkouts.map((workout) => (
+                <div key={workout.id} className="flex justify-between items-center p-3 rounded-md bg-accent/50">
+                  <div>
+                    <p className="font-medium">{workout.workoutPlan.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {workout.sets.length} sets • {workout.sets.reduce((acc, set) => acc + (set.completed ? 1 : 0), 0)} completed
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm">{format(new Date(workout.date), 'MMM d')}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-muted-foreground text-center py-4">
+                No recent workouts
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -67,10 +118,27 @@ export default async function DashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {/* Placeholder for active plans */}
-            <div className="text-sm text-muted-foreground text-center py-4">
-              No active plans
-            </div>
+            {activePlans.length > 0 ? (
+              activePlans.map((plan) => (
+                <div key={plan.id} className="flex justify-between items-center p-3 rounded-md bg-accent/50">
+                  <div>
+                    <p className="font-medium">{plan.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {plan.exercises.length} exercises
+                    </p>
+                  </div>
+                  <div>
+                    <Link href={`/workout/session/new?planId=${plan.id}`}>
+                      <Button size="sm" variant="outline">Start</Button>
+                    </Link>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-muted-foreground text-center py-4">
+                No active plans
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
