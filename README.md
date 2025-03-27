@@ -31,17 +31,20 @@ A mobile-first workout tracking application built with Next.js, Prisma, and Verc
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/yourusername/no-gt.git
    cd no-gt
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Copy the example environment file:
+
    ```bash
    cp .env.example .env
    ```
@@ -52,6 +55,7 @@ A mobile-first workout tracking application built with Next.js, Prisma, and Verc
    - Generate a random secret for `NEXTAUTH_SECRET` using `openssl rand -base64 32`
 
 5. Set up the database:
+
    ```bash
    npm run db:push
    # Or for migrations:
@@ -59,6 +63,7 @@ A mobile-first workout tracking application built with Next.js, Prisma, and Verc
    ```
 
 6. Start the development server:
+
    ```bash
    npm run dev
    ```
@@ -86,7 +91,7 @@ The application is configured for deployment on Vercel:
 
 ## Project Structure
 
-```
+```txt
 .
 ├── prisma/                 # Prisma schema and migrations
 ├── public/                 # Static assets
