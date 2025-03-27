@@ -196,39 +196,40 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getServerSession(authConfig)
-  const { id } = await params;
-  
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-  
   try {
-    // Check if the workout plan exists and belongs to the user
-    const existingPlan = await prisma.workoutPlan.findUnique({
+    const session = await getServerSession(authConfig);
+
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    // Verify the plan belongs to the user
+    const workoutPlan = await prisma.workoutPlan.findUnique({
       where: {
-        id: id,
+        id,
         userId: session.user.id,
       },
-    })
-    
-    if (!existingPlan) {
-      return NextResponse.json({ error: "Workout plan not found" }, { status: 404 })
+    });
+
+    if (!workoutPlan) {
+      return NextResponse.json({ error: "Workout plan not found" }, { status: 404 });
     }
-    
-    // Delete the workout plan (cascades to WorkoutPlanExercise)
+
+    // Delete the workout plan
     await prisma.workoutPlan.delete({
       where: {
-        id: id,
+        id,
       },
-    })
-    
-    return NextResponse.json({ success: true }, { status: 200 })
+    });
+
+    return NextResponse.json({ success: true }, { status: 204 });
   } catch (error) {
-    console.error("Error deleting workout plan:", error)
+    console.error("Error deleting workout plan:", error);
     return NextResponse.json(
       { error: "Failed to delete workout plan" },
       { status: 500 }
-    )
+    );
   }
 } 
