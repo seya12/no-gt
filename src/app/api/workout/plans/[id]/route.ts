@@ -224,7 +224,7 @@ export async function DELETE(
       },
     });
 
-    return NextResponse.json({ success: true }, { status: 204 });
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("Error deleting workout plan:", error);
     return NextResponse.json(
