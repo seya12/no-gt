@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Exercise } from "@prisma/client"
+import { SuggestedWorkoutExercises } from "./suggested-workout-exercises"
 
 // Validation schema for the workout plan form
 const formSchema = z.object({
@@ -64,11 +65,13 @@ interface WorkoutPlanFormProps {
 
 export function WorkoutPlanForm({
   workoutPlan = null,
-  exercises,
+  exercises: initialExercises,
   onSuccess,
 }: WorkoutPlanFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showSuggestions, setShowSuggestions] = useState(!workoutPlan)
+  const [exercises, setExercises] = useState(initialExercises)
 
   // Initialize the form with default values or existing workout plan data
   const form = useForm<FormValues>({
@@ -137,6 +140,43 @@ export function WorkoutPlanForm({
     ])
   }
 
+  // Add an exercise from suggestions
+  const addSuggestedExercise = async (exerciseId: string, defaultSets = 3, defaultReps = 10) => {
+    // Add the exercise to the form
+    form.setValue("exercises", [
+      ...form.getValues("exercises"),
+      {
+        exerciseId,
+        defaultSets,
+        defaultReps,
+        startingWeight: null,
+      },
+    ])
+  }
+
+  // Handle when a new exercise is created
+  const handleExerciseCreated = async (newExercise: Exercise) => {
+    // Update the local exercises list
+    setExercises(prev => [...prev, newExercise])
+    
+    // Add the new exercise to the form
+    addSuggestedExercise(newExercise.id, 3, 10)
+  }
+
+  // Add multiple exercises from a template
+  const addTemplateExercises = (exercisesToAdd: {exerciseId: string, defaultSets: number, defaultReps: number}[]) => {
+    form.setValue("exercises", [
+      ...form.getValues("exercises"),
+      ...exercisesToAdd
+    ])
+  }
+
+  // Handle when multiple exercises are created from a template
+  const handleTemplateExercisesCreated = (newExercises: Exercise[]) => {
+    // Update the local exercises list with all new exercises
+    setExercises(prev => [...prev, ...newExercises])
+  }
+
   // Remove an exercise from the form
   const removeExercise = (index: number) => {
     const currentExercises = form.getValues("exercises")
@@ -153,163 +193,198 @@ export function WorkoutPlanForm({
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Workout Plan Name</FormLabel>
-              <FormControl>
-                <Input placeholder="My Workout Plan" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Exercises</h3>
-            <Button
-              type="button"
-              variant="outline"
+    <div className="space-y-8">
+      {showSuggestions && (
+        <div className="mb-8">
+          <SuggestedWorkoutExercises 
+            availableExercises={exercises}
+            onAddExercise={addSuggestedExercise}
+            onAddTemplate={addTemplateExercises}
+            onExerciseCreated={handleExerciseCreated}
+            onMultipleExercisesCreated={handleTemplateExercisesCreated}
+          />
+          <div className="mt-4 text-center">
+            <Button 
+              variant="ghost" 
               size="sm"
-              onClick={addExercise}
+              onClick={() => setShowSuggestions(false)}
             >
-              Add Exercise
+              Hide Suggestions
             </Button>
           </div>
-
-          {form.watch("exercises").length === 0 && (
-            <Card className="border-dashed">
-              <CardContent className="pt-6 text-center text-muted-foreground">
-                No exercises added yet. Click &quot;Add Exercise&quot; to start building
-                your workout plan.
-              </CardContent>
-            </Card>
-          )}
-
-          {form.watch("exercises").map((exercise, index) => (
-            <Card key={index} className="overflow-hidden">
-              <CardHeader className="bg-muted/50 py-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium">
-                    {exercise.exerciseId
-                      ? getExerciseName(exercise.exerciseId)
-                      : `Exercise ${index + 1}`}
-                  </h4>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => removeExercise(index)}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="grid gap-4 pt-6">
-                <FormField
-                  control={form.control}
-                  name={`exercises.${index}.exerciseId`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Exercise</FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select an exercise" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {exercises.map((exercise) => (
-                            <SelectItem key={exercise.id} value={exercise.id}>
-                              {exercise.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name={`exercises.${index}.defaultSets`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sets</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="1"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name={`exercises.${index}.defaultReps`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Reps</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="1"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name={`exercises.${index}.startingWeight`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Weight (kg)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.5"
-                            value={field.value === null ? "" : field.value}
-                            onChange={(e) => {
-                              const value = e.target.value === "" 
-                                ? null 
-                                : parseFloat(e.target.value)
-                              field.onChange(value)
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
         </div>
+      )}
 
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : workoutPlan ? "Update Plan" : "Create Plan"}
-        </Button>
-      </form>
-    </Form>
+      {!showSuggestions && !workoutPlan && (
+        <div className="mb-4 text-center">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowSuggestions(true)}
+          >
+            Show Suggested Exercises
+          </Button>
+        </div>
+      )}
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Workout Plan Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="My Workout Plan" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Exercises</h3>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addExercise}
+              >
+                Add Exercise
+              </Button>
+            </div>
+
+            {form.watch("exercises").length === 0 && (
+              <Card className="border-dashed">
+                <CardContent className="pt-6 text-center text-muted-foreground">
+                  No exercises added yet. Click &quot;Add Exercise&quot; to start building
+                  your workout plan.
+                </CardContent>
+              </Card>
+            )}
+
+            {form.watch("exercises").map((exercise, index) => (
+              <Card key={index} className="overflow-hidden">
+                <CardHeader className="bg-muted/50 py-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">
+                      {exercise.exerciseId
+                        ? getExerciseName(exercise.exerciseId)
+                        : `Exercise ${index + 1}`}
+                    </h4>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeExercise(index)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="grid gap-4 pt-6">
+                  <FormField
+                    control={form.control}
+                    name={`exercises.${index}.exerciseId`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Exercise</FormLabel>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select an exercise" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {exercises.map((exercise) => (
+                              <SelectItem key={exercise.id} value={exercise.id}>
+                                {exercise.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name={`exercises.${index}.defaultSets`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Sets</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="1"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`exercises.${index}.defaultReps`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Reps</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="1"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`exercises.${index}.startingWeight`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Weight (kg)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.5"
+                              value={field.value === null ? "" : field.value}
+                              onChange={(e) => {
+                                const value = e.target.value === "" 
+                                  ? null 
+                                  : parseFloat(e.target.value)
+                                field.onChange(value)
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Saving..." : workoutPlan ? "Update Plan" : "Create Plan"}
+          </Button>
+        </form>
+      </Form>
+    </div>
   )
 } 

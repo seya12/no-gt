@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Exercise } from "@prisma/client"
 import { Loader2 } from "lucide-react"
+import { SuggestedExercises } from "./suggested-exercises"
 
 // Validation schema for exercise form
 const formSchema = z.object({
@@ -44,6 +45,12 @@ export function ExerciseForm({ exercise = null }: ExerciseFormProps) {
       description: exercise?.description || "",
     },
   })
+  
+  // Handle selecting a suggested exercise
+  const handleSelectExercise = (name: string, description: string) => {
+    form.setValue("name", name);
+    form.setValue("description", description);
+  };
   
   // Form submission handler
   const onSubmit = async (data: FormValues) => {
@@ -79,61 +86,67 @@ export function ExerciseForm({ exercise = null }: ExerciseFormProps) {
   }
   
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Bench Press" {...field} />
-              </FormControl>
-              <FormDescription>
-                The name of the exercise
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description (Optional)</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="A compound exercise that targets the chest, shoulders, and triceps."
-                  className="min-h-[100px]"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription>
-                Details about the exercise, form cues, or targeted muscles
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <div className="flex justify-end space-x-4">
-          <Button 
-            variant="outline" 
-            type="button"
-            onClick={() => router.push("/exercises")}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {exercise ? "Update" : "Create"} Exercise
-          </Button>
-        </div>
-      </form>
-    </Form>
+    <div className="space-y-8">
+      {!exercise && (
+        <SuggestedExercises onSelectExercise={handleSelectExercise} />
+      )}
+      
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Bench Press" {...field} />
+                </FormControl>
+                <FormDescription>
+                  The name of the exercise
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description (Optional)</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="A compound exercise that targets the chest, shoulders, and triceps."
+                    className="min-h-[100px]"
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Details about the exercise, form cues, or targeted muscles
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <div className="flex justify-end space-x-4">
+            <Button 
+              variant="outline" 
+              type="button"
+              onClick={() => router.push("/exercises")}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {exercise ? "Update" : "Create"} Exercise
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   )
 } 
