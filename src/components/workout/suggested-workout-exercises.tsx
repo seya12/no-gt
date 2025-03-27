@@ -256,11 +256,11 @@ export function SuggestedWorkoutExercises({
                       >
                         {isCreating ? (
                           <>
-                            <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Creating...
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Adding...
                           </>
                         ) : (
                           <>
-                            <Plus className="h-4 w-4 mr-1" /> Create & Add
+                            <Plus className="h-4 w-4 mr-1" /> Add to Plan
                           </>
                         )}
                       </Button>
@@ -302,7 +302,7 @@ export function SuggestedWorkoutExercises({
                           >
                             {creatingTemplate === `${template}:${split}` ? (
                               <>
-                                <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Creating...
+                                <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Adding...
                               </>
                             ) : (
                               <>
