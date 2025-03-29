@@ -39,7 +39,10 @@ export default async function EditWorkoutPlanPage({
   // Fetch all exercises for the form
   const exercises = await prisma.exercise.findMany({
     where: {
-      userId: session.user.id,
+      OR: [
+        { userId: session.user.id },
+        { user: { email: 'system@no-gt.local' } }
+      ]
     },
     orderBy: {
       name: "asc",
