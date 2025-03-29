@@ -37,7 +37,6 @@ const formSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
   exercises: z.array(
     z.object({
-      id: z.string().optional(),
       exerciseId: z.string(),
       defaultSets: z.coerce.number().int().min(1, "Minimum 1 set"),
       defaultReps: z.coerce.number().int().min(1, "Minimum 1 rep"),
@@ -48,29 +47,22 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
-export type WorkoutPlanExercise = {
-  id?: string
-  exerciseId: string
-  defaultSets: number
-  defaultReps: number
-  startingWeight: number | null
-  exercise?: Exercise
-}
-
-interface WorkoutPlan {
-  id: string
-  name: string
-  exercises: WorkoutPlanExercise[]
-}
-
 interface WorkoutPlanFormProps {
-  workoutPlan?: WorkoutPlan | null
-  exercises: Exercise[]
-  onSuccess?: () => void
+  defaultValues?: {
+    name: string;
+    exercises: {
+      exerciseId: string;
+      defaultSets: number;
+      defaultReps: number;
+      startingWeight: number | null;
+    }[];
+  };
+  exercises: Exercise[];
+  onSuccess?: () => void;
 }
 
 export function WorkoutPlanForm({
-  workoutPlan = null,
+  defaultValues,
   exercises: initialExercises,
   onSuccess,
 }: WorkoutPlanFormProps) {
@@ -79,20 +71,12 @@ export function WorkoutPlanForm({
   const [isExerciseDialogOpen, setIsExerciseDialogOpen] = useState(false)
   const [exercises, setExercises] = useState(initialExercises)
 
-  // Initialize the form with default values or existing workout plan data
+  // Initialize the form with default values
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: workoutPlan?.name || "",
-      exercises: workoutPlan?.exercises?.length
-        ? workoutPlan.exercises.map((exercise) => ({
-            id: exercise.id,
-            exerciseId: exercise.exerciseId,
-            defaultSets: exercise.defaultSets,
-            defaultReps: exercise.defaultReps,
-            startingWeight: exercise.startingWeight,
-          }))
-        : [],
+    defaultValues: defaultValues || {
+      name: "",
+      exercises: [],
     },
   })
 
@@ -101,14 +85,8 @@ export function WorkoutPlanForm({
     setIsSubmitting(true)
     
     try {
-      const endpoint = workoutPlan
-        ? `/api/workout/plans/${workoutPlan.id}`
-        : "/api/workout/plans"
-      
-      const method = workoutPlan ? "PATCH" : "POST"
-      
-      const response = await fetch(endpoint, {
-        method,
+      const response = await fetch("/api/workout/plans", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -156,22 +134,6 @@ export function WorkoutPlanForm({
     
     // Add the new exercise to the form
     addSuggestedExercise(newExercise.id, 3, 10)
-  }
-
-  // Add multiple exercises from a template
-  const addTemplateExercises = (exercisesToAdd: {exerciseId: string, defaultSets: number, defaultReps: number}[]) => {
-    form.setValue("exercises", [
-      ...form.getValues("exercises"),
-      ...exercisesToAdd
-    ])
-    // Close the dialog after adding
-    setIsExerciseDialogOpen(false)
-  }
-
-  // Handle when multiple exercises are created from a template
-  const handleTemplateExercisesCreated = (newExercises: Exercise[]) => {
-    // Update the local exercises list with all new exercises
-    setExercises(prev => [...prev, ...newExercises])
   }
 
   // Remove an exercise from the form
@@ -316,7 +278,7 @@ export function WorkoutPlanForm({
           </div>
 
           <Button type="submit" disabled={isSubmitting}>
-            {workoutPlan ? "Update Plan" : "Create Plan"}
+            Create Plan
           </Button>
         </form>
       </Form>
@@ -330,9 +292,7 @@ export function WorkoutPlanForm({
             <SuggestedWorkoutExercises 
               availableExercises={exercises}
               onAddExercise={addSuggestedExercise}
-              onAddTemplate={addTemplateExercises}
               onExerciseCreated={handleExerciseCreated}
-              onMultipleExercisesCreated={handleTemplateExercisesCreated}
             />
           </div>
         </DialogContent>
