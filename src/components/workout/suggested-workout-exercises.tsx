@@ -7,6 +7,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SUGGESTED_EXERCISES, WORKOUT_TEMPLATES } from "@/lib/constants/exercises";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
 interface SuggestedWorkoutExercisesProps {
   availableExercises: Exercise[];
@@ -26,6 +36,9 @@ export function SuggestedWorkoutExercises({
   const [selectedCategory, setSelectedCategory] = useState<string>("Strength");
   const [creatingExercise, setCreatingExercise] = useState<string | null>(null);
   const [creatingTemplate, setCreatingTemplate] = useState<string | null>(null);
+  const [isCustomDialogOpen, setIsCustomDialogOpen] = useState(false);
+  const [customExercise, setCustomExercise] = useState({ name: "", description: "" });
+  const [isCreatingCustom, setIsCreatingCustom] = useState(false);
   
   // Find exercise ID by name
   const findExerciseId = (name: string): string | undefined => {
@@ -147,7 +160,43 @@ export function SuggestedWorkoutExercises({
       setCreatingTemplate(null);
     }
   };
-  
+
+  // Create custom exercise
+  const handleCreateCustomExercise = async () => {
+    if (!customExercise.name) return;
+
+    try {
+      setIsCreatingCustom(true);
+      
+      const response = await fetch('/api/exercises', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(customExercise),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create exercise');
+      }
+      
+      const newExercise = await response.json();
+      
+      // Notify parent component about the new exercise
+      if (onExerciseCreated) {
+        onExerciseCreated(newExercise);
+      }
+      
+      // Reset form and close dialog
+      setCustomExercise({ name: "", description: "" });
+      setIsCustomDialogOpen(false);
+    } catch (error) {
+      console.error('Error creating custom exercise:', error);
+    } finally {
+      setIsCreatingCustom(false);
+    }
+  };
+
   return (
     <Tabs defaultValue="exercises" className="w-full">
       <TabsList className="grid w-full grid-cols-2">
@@ -156,75 +205,129 @@ export function SuggestedWorkoutExercises({
       </TabsList>
       
       <TabsContent value="exercises" className="mt-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Suggested Exercises</CardTitle>
-            <CardDescription>
-              Add common exercises to your workout plan
-            </CardDescription>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {Object.keys(SUGGESTED_EXERCISES).map((category) => (
-                <Button 
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category}
+        <div className="space-y-6">
+          <div className="flex justify-end">
+            <Dialog open={isCustomDialogOpen} onOpenChange={setIsCustomDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Custom Exercise
                 </Button>
-              ))}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2">
-              {SUGGESTED_EXERCISES[selectedCategory as keyof typeof SUGGESTED_EXERCISES].map((exercise) => {
-                const existingExercise = availableExercises.find(
-                  (e) => e.name.toLowerCase() === exercise.name.toLowerCase()
-                );
-                
-                const isCreating = creatingExercise === exercise.name;
-                
-                return (
-                  <div 
-                    key={exercise.name} 
-                    className="flex items-center justify-between p-3 border rounded-md hover:bg-accent/50 transition-colors"
-                  >
-                    <div>
-                      <h3 className="font-medium">{exercise.name}</h3>
-                      <p className="text-sm text-muted-foreground">{exercise.description}</p>
-                    </div>
-                    {existingExercise ? (
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => onAddExercise(existingExercise.id, 3, 10)}
-                      >
-                        <Plus className="h-4 w-4 mr-1" /> Add to Plan
-                      </Button>
-                    ) : (
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => createAndAddExercise(exercise.name, exercise.description || "")}
-                        disabled={isCreating}
-                      >
-                        {isCreating ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Adding...
-                          </>
-                        ) : (
-                          <>
-                            <Plus className="h-4 w-4 mr-1" /> Add to Plan
-                          </>
-                        )}
-                      </Button>
-                    )}
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create Custom Exercise</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Exercise Name</Label>
+                    <Input
+                      id="name"
+                      placeholder="e.g., Cable Flyes"
+                      value={customExercise.name}
+                      onChange={(e) => setCustomExercise(prev => ({ ...prev, name: e.target.value }))}
+                    />
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Describe the exercise..."
+                      value={customExercise.description}
+                      onChange={(e) => setCustomExercise(prev => ({ ...prev, description: e.target.value }))}
+                    />
+                  </div>
+                  <Button 
+                    className="w-full" 
+                    onClick={handleCreateCustomExercise}
+                    disabled={isCreatingCustom || !customExercise.name}
+                  >
+                    {isCreatingCustom ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4 mr-2" /> Create Exercise
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {Object.keys(SUGGESTED_EXERCISES).map((category) => (
+              <Button 
+                key={category}
+                variant={selectedCategory === category ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(category)}
+              >
+                {category}
+              </Button>
+            ))}
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Suggested Exercises</CardTitle>
+              <CardDescription>
+                Add common exercises to your workout plan
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-2">
+                {SUGGESTED_EXERCISES[selectedCategory as keyof typeof SUGGESTED_EXERCISES].map((exercise) => {
+                  const existingExercise = availableExercises.find(
+                    (e) => e.name.toLowerCase() === exercise.name.toLowerCase()
+                  );
+                  
+                  const isCreating = creatingExercise === exercise.name;
+                  
+                  return (
+                    <div 
+                      key={exercise.name} 
+                      className="flex items-center justify-between p-3 border rounded-md hover:bg-accent/50 transition-colors"
+                    >
+                      <div>
+                        <h3 className="font-medium">{exercise.name}</h3>
+                        <p className="text-sm text-muted-foreground">{exercise.description}</p>
+                      </div>
+                      {existingExercise ? (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => onAddExercise(existingExercise.id, 3, 10)}
+                        >
+                          <Plus className="h-4 w-4 mr-1" /> Add to Plan
+                        </Button>
+                      ) : (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => createAndAddExercise(exercise.name, exercise.description || "")}
+                          disabled={isCreating}
+                        >
+                          {isCreating ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Adding...
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="h-4 w-4 mr-1" /> Add to Plan
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </TabsContent>
       
       <TabsContent value="templates" className="mt-4">
