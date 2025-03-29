@@ -30,11 +30,11 @@ export default function RootLayout({
                 <MainNav />
               </div>
             </header>
-            <main className="flex-1 pb-20 md:pb-4">
+            <main className="flex-1">
               {children}
             </main>
+            <BottomNav />
           </div>
-          <BottomNav />
         </AuthProvider>
       </body>
     </html>
