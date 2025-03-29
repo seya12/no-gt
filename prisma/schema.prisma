@@ -71,6 +71,8 @@ model Exercise {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   workoutPlans WorkoutPlanExercise[]
   sets        Set[]
+
+  @@unique([userId, name])
 }
 
 model WorkoutPlan {
