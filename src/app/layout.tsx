@@ -30,7 +30,7 @@ export default function RootLayout({
                 <MainNav />
               </div>
             </header>
-            <main className="flex-1">
+            <main className="flex-1 pb-20 md:pb-4">
               {children}
             </main>
           </div>
