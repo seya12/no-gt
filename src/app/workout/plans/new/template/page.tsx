@@ -15,7 +15,7 @@ export default async function NewWorkoutPlanTemplatePage() {
   }
   
   return (
-    <div className="container py-6 max-w-4xl">
+    <div className="container p-4 md:py-6 max-w-4xl">
       <div className="flex items-center gap-4 mb-6">
         <Link href="/workout/plans/new">
           <Button variant="ghost" size="sm">

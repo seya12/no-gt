@@ -61,7 +61,7 @@ export default async function EditWorkoutPlanPage({
   }
   
   return (
-    <div className="container py-6 max-w-4xl">
+    <div className="container p-4 md:py-6 max-w-4xl">
       <h1 className="text-2xl font-bold mb-6">Edit Workout Plan</h1>
       <WorkoutPlanForm 
         exercises={exercises} 

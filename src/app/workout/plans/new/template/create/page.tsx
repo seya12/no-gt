@@ -46,7 +46,7 @@ export default async function NewWorkoutPlanTemplateCreatePage({
 
   // Create initial form data with template exercises
   const initialData = {
-    name: `${type} - ${split}`,
+    name: split,
     exercises: templateExercises
       .map(name => {
         const exercise = exercises.find(e => e.name.toLowerCase() === name.toLowerCase())
@@ -62,8 +62,8 @@ export default async function NewWorkoutPlanTemplateCreatePage({
   }
   
   return (
-    <div className="container py-6 max-w-4xl">
-      <h1 className="text-2xl font-bold mb-6">Create {type} - {split} Plan</h1>
+    <div className="container p-4 md:py-6 max-w-4xl">
+      <h1 className="text-2xl font-bold mb-6">Create {split} Plan</h1>
       <WorkoutPlanForm exercises={exercises} defaultValues={initialData} />
     </div>
   )

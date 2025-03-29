@@ -24,14 +24,16 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <header className="border-b">
-            <div className="container flex h-16 items-center px-4">
-              <MainNav />
-            </div>
-          </header>
-          <main className="pb-20 md:pb-4">
-            {children}
-          </main>
+          <div className="flex min-h-screen flex-col">
+            <header className="border-b hidden md:block">
+              <div className="container flex h-14 items-center">
+                <MainNav />
+              </div>
+            </header>
+            <main className="flex-1">
+              {children}
+            </main>
+          </div>
           <BottomNav />
         </AuthProvider>
       </body>
