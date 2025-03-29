@@ -270,63 +270,53 @@ export function SuggestedWorkoutExercises({
             ))}
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Suggested Exercises</CardTitle>
-              <CardDescription>
-                Add common exercises to your workout plan
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-2">
-                {SUGGESTED_EXERCISES[selectedCategory as keyof typeof SUGGESTED_EXERCISES].map((exercise) => {
-                  const existingExercise = availableExercises.find(
-                    (e) => e.name.toLowerCase() === exercise.name.toLowerCase()
-                  );
-                  
-                  const isCreating = creatingExercise === exercise.name;
-                  
-                  return (
-                    <div 
-                      key={exercise.name} 
-                      className="flex items-center justify-between p-3 border rounded-md hover:bg-accent/50 transition-colors"
+          <div className="grid gap-4">
+            {SUGGESTED_EXERCISES[selectedCategory as keyof typeof SUGGESTED_EXERCISES].map((exercise) => {
+              const existingExercise = availableExercises.find(
+                (e) => e.name.toLowerCase() === exercise.name.toLowerCase()
+              );
+              
+              const isCreating = creatingExercise === exercise.name;
+              
+              return (
+                <div 
+                  key={exercise.name} 
+                  className="flex items-center justify-between p-3 border rounded-md hover:bg-accent/50 transition-colors"
+                >
+                  <div>
+                    <h3 className="font-medium">{exercise.name}</h3>
+                    <p className="text-sm text-muted-foreground">{exercise.description}</p>
+                  </div>
+                  {existingExercise ? (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => onAddExercise(existingExercise.id, 3, 10)}
                     >
-                      <div>
-                        <h3 className="font-medium">{exercise.name}</h3>
-                        <p className="text-sm text-muted-foreground">{exercise.description}</p>
-                      </div>
-                      {existingExercise ? (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => onAddExercise(existingExercise.id, 3, 10)}
-                        >
-                          <Plus className="h-4 w-4 mr-1" /> Add to Plan
-                        </Button>
+                      <Plus className="h-4 w-4 mr-1" /> Add to Plan
+                    </Button>
+                  ) : (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => createAndAddExercise(exercise.name, exercise.description || "")}
+                      disabled={isCreating}
+                    >
+                      {isCreating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Adding...
+                        </>
                       ) : (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => createAndAddExercise(exercise.name, exercise.description || "")}
-                          disabled={isCreating}
-                        >
-                          {isCreating ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Adding...
-                            </>
-                          ) : (
-                            <>
-                              <Plus className="h-4 w-4 mr-1" /> Add to Plan
-                            </>
-                          )}
-                        </Button>
+                        <>
+                          <Plus className="h-4 w-4 mr-1" /> Add to Plan
+                        </>
                       )}
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </TabsContent>
       
