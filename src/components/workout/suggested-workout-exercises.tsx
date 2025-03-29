@@ -292,7 +292,7 @@ export function SuggestedWorkoutExercises({
                       variant="outline"
                       onClick={() => onAddExercise(existingExercise.id, 3, 10)}
                     >
-                      <Plus className="h-4 w-4 mr-1" /> Add to Plan
+                      <Plus className="h-4 w-4 mr-1" /> Add
                     </Button>
                   ) : (
                     <Button 
@@ -307,7 +307,7 @@ export function SuggestedWorkoutExercises({
                         </>
                       ) : (
                         <>
-                          <Plus className="h-4 w-4 mr-1" /> Add to Plan
+                          <Plus className="h-4 w-4 mr-1" /> Add
                         </>
                       )}
                     </Button>
@@ -320,38 +320,38 @@ export function SuggestedWorkoutExercises({
       </TabsContent>
       
       <TabsContent value="templates" className="mt-4">
-        <div className="grid gap-6">
+        <div className="grid gap-4">
           {Object.entries(WORKOUT_TEMPLATES).map(([template, splits]) => (
             <div key={template}>
-              <h3 className="font-medium text-lg mb-2">{template}</h3>
-              <div className="grid gap-3">
+              <h3 className="font-medium text-lg mb-4">{template}</h3>
+              <div className="grid gap-4">
                 {Object.entries(splits).map(([split, exercises]) => (
                   <div 
                     key={split}
-                    className="p-4 border rounded-md"
+                    className="flex items-center justify-between p-3 border rounded-md hover:bg-accent/50 transition-colors"
                   >
-                    <div className="flex justify-between items-start mb-2">
+                    <div>
                       <h4 className="font-medium">{split}</h4>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleAddTemplateWithCreate(template as keyof typeof WORKOUT_TEMPLATES, split)}
-                        disabled={creatingTemplate === `${template}:${split}`}
-                      >
-                        {creatingTemplate === `${template}:${split}` ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Adding...
-                          </>
-                        ) : (
-                          <>
-                            <Plus className="h-4 w-4 mr-1" /> Add
-                          </>
-                        )}
-                      </Button>
+                      <p className="text-sm text-muted-foreground">
+                        {exercises.join(", ")}
+                      </p>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      {exercises.join(", ")}
-                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleAddTemplateWithCreate(template as keyof typeof WORKOUT_TEMPLATES, split)}
+                      disabled={creatingTemplate === `${template}:${split}`}
+                    >
+                      {creatingTemplate === `${template}:${split}` ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Adding...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-4 w-4 mr-1" /> Add
+                        </>
+                      )}
+                    </Button>
                   </div>
                 ))}
               </div>
