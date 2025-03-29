@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { authConfig } from "@/lib/auth/auth.config"
 import { redirect } from "next/navigation"
 import Image from "next/image"
+import { LogoutButton } from "@/components/auth/logout-button"
 
 export default async function ProfilePage() {
   const session = await getServerSession(authConfig)
@@ -13,7 +14,10 @@ export default async function ProfilePage() {
 
   return (
     <div className="container mx-auto p-4 space-y-6">
-      <h1 className="text-2xl font-bold mb-6">Profile</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Profile</h1>
+        <LogoutButton />
+      </div>
       
       <Card>
         <CardHeader>
