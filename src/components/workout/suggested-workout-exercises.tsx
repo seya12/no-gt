@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Exercise } from "@prisma/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SUGGESTED_EXERCISES, WORKOUT_TEMPLATES } from "@/lib/constants/exercises";
@@ -321,54 +320,44 @@ export function SuggestedWorkoutExercises({
       </TabsContent>
       
       <TabsContent value="templates" className="mt-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Workout Templates</CardTitle>
-            <CardDescription>
-              Add pre-built workout splits to your plan
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-6">
-              {Object.entries(WORKOUT_TEMPLATES).map(([template, splits]) => (
-                <div key={template}>
-                  <h3 className="font-medium text-lg mb-2">{template}</h3>
-                  <div className="grid gap-3">
-                    {Object.entries(splits).map(([split, exercises]) => (
-                      <div 
-                        key={split}
-                        className="p-4 border rounded-md"
+        <div className="grid gap-6">
+          {Object.entries(WORKOUT_TEMPLATES).map(([template, splits]) => (
+            <div key={template}>
+              <h3 className="font-medium text-lg mb-2">{template}</h3>
+              <div className="grid gap-3">
+                {Object.entries(splits).map(([split, exercises]) => (
+                  <div 
+                    key={split}
+                    className="p-4 border rounded-md"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-medium">{split}</h4>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleAddTemplateWithCreate(template as keyof typeof WORKOUT_TEMPLATES, split)}
+                        disabled={creatingTemplate === `${template}:${split}`}
                       >
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium">{split}</h4>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleAddTemplateWithCreate(template as keyof typeof WORKOUT_TEMPLATES, split)}
-                            disabled={creatingTemplate === `${template}:${split}`}
-                          >
-                            {creatingTemplate === `${template}:${split}` ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Adding...
-                              </>
-                            ) : (
-                              <>
-                                <Plus className="h-4 w-4 mr-1" /> Add
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {exercises.join(", ")}
-                        </div>
-                      </div>
-                    ))}
+                        {creatingTemplate === `${template}:${split}` ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Adding...
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="h-4 w-4 mr-1" /> Add
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {exercises.join(", ")}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          ))}
+        </div>
       </TabsContent>
     </Tabs>
   );
