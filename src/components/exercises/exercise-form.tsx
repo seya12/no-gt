@@ -19,7 +19,6 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Exercise } from "@prisma/client"
 import { Loader2 } from "lucide-react"
-import { SuggestedExercises } from "./suggested-exercises"
 
 // Validation schema for exercise form
 const formSchema = z.object({
@@ -45,12 +44,6 @@ export function ExerciseForm({ exercise = null }: ExerciseFormProps) {
       description: exercise?.description || "",
     },
   })
-  
-  // Handle selecting a suggested exercise
-  const handleSelectExercise = (name: string, description: string) => {
-    form.setValue("name", name);
-    form.setValue("description", description);
-  };
   
   // Form submission handler
   const onSubmit = async (data: FormValues) => {
@@ -87,10 +80,6 @@ export function ExerciseForm({ exercise = null }: ExerciseFormProps) {
   
   return (
     <div className="space-y-8">
-      {!exercise && (
-        <SuggestedExercises onSelectExercise={handleSelectExercise} />
-      )}
-      
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
@@ -130,21 +119,17 @@ export function ExerciseForm({ exercise = null }: ExerciseFormProps) {
               </FormItem>
             )}
           />
-          
-          <div className="flex justify-end space-x-4">
-            <Button 
-              variant="outline" 
-              type="button"
-              onClick={() => router.push("/exercises")}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {exercise ? "Update" : "Create"} Exercise
-            </Button>
-          </div>
+
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {exercise ? "Updating..." : "Creating..."}
+              </>
+            ) : (
+              exercise ? "Update Exercise" : "Create Exercise"
+            )}
+          </Button>
         </form>
       </Form>
     </div>
