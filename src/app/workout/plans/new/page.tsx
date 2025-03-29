@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth"
-import { prisma } from "@/lib/db"
-import { WorkoutPlanForm } from "@/components/workout/plan-form"
 import { authConfig } from "@/lib/auth/auth.config"
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dumbbell, LayoutTemplate } from "lucide-react"
+import Link from "next/link"
 
 export default async function NewWorkoutPlanPage() {
   const session = await getServerSession(authConfig)
@@ -11,23 +12,35 @@ export default async function NewWorkoutPlanPage() {
     redirect("/api/auth/signin")
   }
   
-  // Fetch all exercises for the form
-  const exercises = await prisma.exercise.findMany({
-    where: {
-      OR: [
-        { userId: session.user.id },
-        { user: { email: 'system@no-gt.local' } }
-      ]
-    },
-    orderBy: {
-      name: "asc",
-    },
-  })
-  
   return (
     <div className="container py-6 max-w-4xl">
       <h1 className="text-2xl font-bold mb-6">Create New Workout Plan</h1>
-      <WorkoutPlanForm exercises={exercises} />
+      
+      <div className="grid gap-6 md:grid-cols-2">
+        <Link href="/workout/plans/new/template">
+          <Card className="hover:bg-accent/50 transition-colors cursor-pointer h-full">
+            <CardHeader>
+              <LayoutTemplate className="w-8 h-8 mb-2" />
+              <CardTitle>Use Template</CardTitle>
+              <CardDescription>
+                Start with a pre-built workout split like Push/Pull/Legs or Upper/Lower
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+
+        <Link href="/workout/plans/new/custom">
+          <Card className="hover:bg-accent/50 transition-colors cursor-pointer h-full">
+            <CardHeader>
+              <Dumbbell className="w-8 h-8 mb-2" />
+              <CardTitle>Create Custom Plan</CardTitle>
+              <CardDescription>
+                Start with an empty plan and build it from scratch with our exercise library
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+      </div>
     </div>
   )
 } 

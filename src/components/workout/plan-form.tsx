@@ -48,7 +48,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
-type WorkoutPlanExercise = {
+export type WorkoutPlanExercise = {
   id?: string
   exerciseId: string
   defaultSets: number
