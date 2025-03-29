@@ -66,7 +66,7 @@ export default async function WorkoutSessionPage({
   const groupedSets = Object.values(exerciseSets)
   
   return (
-    <div className="container py-6 space-y-6">
+    <div className="container p-4 md:py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <Button asChild variant="ghost" size="icon" className="mr-2">

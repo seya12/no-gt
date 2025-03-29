@@ -86,7 +86,7 @@ export default async function CompleteWorkoutSessionPage({
   const completionRate = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0
   
   return (
-    <div className="container py-6 space-y-6">
+    <div className="container p-4 md:py-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Workout Complete</h1>
         <Button asChild variant="outline" size="sm">
