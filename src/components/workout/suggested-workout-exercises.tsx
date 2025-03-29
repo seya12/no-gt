@@ -6,53 +6,7 @@ import { Exercise } from "@prisma/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-// Define suggested exercise categories and exercises
-const SUGGESTED_EXERCISES = {
-  "Strength": [
-    { name: "Squat", description: "Compound lower body exercise targeting quads, hamstrings, and glutes." },
-    { name: "Deadlift", description: "Full body compound exercise that primarily targets the posterior chain." },
-    { name: "Bench Press", description: "Upper body compound exercise focusing on chest, shoulders, and triceps." },
-    { name: "Overhead Press", description: "Compound exercise targeting shoulders and triceps." },
-    { name: "Barbell Row", description: "Compound back exercise focusing on lats and upper back muscles." },
-    { name: "Pull-up", description: "Upper body exercise that targets the lats, biceps, and grip strength." },
-  ],
-  "Isolation": [
-    { name: "Bicep Curl", description: "Isolation exercise targeting the biceps." },
-    { name: "Tricep Extension", description: "Isolation exercise targeting the triceps." },
-    { name: "Leg Extension", description: "Isolation exercise targeting the quadriceps." },
-    { name: "Leg Curl", description: "Isolation exercise targeting the hamstrings." },
-    { name: "Lateral Raise", description: "Isolation exercise targeting the lateral deltoids." },
-    { name: "Calf Raise", description: "Isolation exercise targeting the calf muscles." },
-  ],
-  "Bodyweight": [
-    { name: "Push-up", description: "Bodyweight exercise targeting chest, shoulders, and triceps." },
-    { name: "Bodyweight Squat", description: "Bodyweight exercise targeting quads, hamstrings, and glutes." },
-    { name: "Lunge", description: "Bodyweight or weighted exercise targeting quads, hamstrings, and glutes." },
-    { name: "Plank", description: "Core stability exercise targeting the entire core region." },
-    { name: "Mountain Climber", description: "Dynamic bodyweight exercise targeting core and cardiovascular system." },
-    { name: "Burpee", description: "Full body exercise that combines strength and cardio elements." },
-  ],
-};
-
-// Define template types to fix TypeScript errors
-type TemplateType = "Push/Pull/Legs" | "Upper/Lower" | "Full Body";
-
-// Common workout templates
-const WORKOUT_TEMPLATES: Record<TemplateType, Record<string, string[]>> = {
-  "Push/Pull/Legs": {
-    "Push": ["Bench Press", "Overhead Press", "Tricep Extension"],
-    "Pull": ["Barbell Row", "Pull-up", "Bicep Curl"],
-    "Legs": ["Squat", "Deadlift", "Leg Extension", "Calf Raise"],
-  },
-  "Upper/Lower": {
-    "Upper Body": ["Bench Press", "Barbell Row", "Overhead Press", "Pull-up", "Bicep Curl", "Tricep Extension"],
-    "Lower Body": ["Squat", "Deadlift", "Leg Extension", "Leg Curl", "Calf Raise"],
-  },
-  "Full Body": {
-    "Full Body": ["Squat", "Bench Press", "Barbell Row", "Overhead Press", "Deadlift"],
-  },
-};
+import { SUGGESTED_EXERCISES, WORKOUT_TEMPLATES } from "@/lib/constants/exercises";
 
 interface SuggestedWorkoutExercisesProps {
   availableExercises: Exercise[];
@@ -119,7 +73,7 @@ export function SuggestedWorkoutExercises({
   };
 
   // Handle adding a template with auto-create
-  const handleAddTemplateWithCreate = async (template: TemplateType, split: string) => {
+  const handleAddTemplateWithCreate = async (template: keyof typeof WORKOUT_TEMPLATES, split: string) => {
     try {
       setCreatingTemplate(`${template}:${split}`);
       
@@ -297,7 +251,7 @@ export function SuggestedWorkoutExercises({
                           <Button 
                             size="sm" 
                             variant="outline"
-                            onClick={() => handleAddTemplateWithCreate(template as TemplateType, split)}
+                            onClick={() => handleAddTemplateWithCreate(template as keyof typeof WORKOUT_TEMPLATES, split)}
                             disabled={creatingTemplate === `${template}:${split}`}
                           >
                             {creatingTemplate === `${template}:${split}` ? (
