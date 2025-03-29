@@ -78,6 +78,10 @@ export function WorkoutSessionTracker({
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
   
+  const parseRestDuration = (minutes: number, seconds: number) => {
+    return Math.max(0, minutes * 60 + seconds)
+  }
+  
   const startRestTimer = (duration: number = tempRestDuration) => {
     setRestTimer(duration)
     setIsTimerRunning(true)
@@ -284,28 +288,65 @@ export function WorkoutSessionTracker({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Rest Timer (seconds)</label>
+              <label className="text-sm font-medium">Rest Timer</label>
               <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setTempRestDuration(Math.max(0, tempRestDuration - 15))}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <Input
-                  type="number"
-                  className="w-20 text-center"
-                  value={tempRestDuration}
-                  onChange={(e) => setTempRestDuration(Math.max(0, parseInt(e.target.value) || 0))}
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setTempRestDuration(tempRestDuration + 15)}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="number"
+                    className="w-16 text-center"
+                    value={Math.floor(tempRestDuration / 60)}
+                    onChange={(e) => {
+                      const mins = Math.max(0, parseInt(e.target.value) || 0)
+                      const secs = tempRestDuration % 60
+                      setTempRestDuration(parseRestDuration(mins, secs))
+                    }}
+                    min="0"
+                    placeholder="0"
+                  />
+                  <span className="text-sm font-medium">min</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="number"
+                    className="w-16 text-center"
+                    value={tempRestDuration % 60}
+                    onChange={(e) => {
+                      const mins = Math.floor(tempRestDuration / 60)
+                      const secs = Math.max(0, parseInt(e.target.value) || 0) % 60
+                      setTempRestDuration(parseRestDuration(mins, secs))
+                    }}
+                    min="0"
+                    max="59"
+                    placeholder="0"
+                  />
+                  <span className="text-sm font-medium">sec</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      const currentSeconds = tempRestDuration % 60
+                      const newSeconds = Math.max(0, currentSeconds - 15)
+                      const minutes = Math.floor(tempRestDuration / 60)
+                      setTempRestDuration(parseRestDuration(minutes, newSeconds))
+                    }}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      const currentSeconds = tempRestDuration % 60
+                      const newSeconds = (currentSeconds + 15) % 60
+                      const minutes = Math.floor(tempRestDuration / 60) + (currentSeconds + 15 >= 60 ? 1 : 0)
+                      setTempRestDuration(parseRestDuration(minutes, newSeconds))
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
