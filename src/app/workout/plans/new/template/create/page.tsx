@@ -4,13 +4,12 @@ import { prisma } from "@/lib/db"
 import { authConfig } from "@/lib/auth/auth.config"
 import { WorkoutPlanForm } from "@/components/workout/plan-form"
 import { WORKOUT_TEMPLATES } from "@/lib/constants/exercises"
-import type { WorkoutPlanExercise } from "@/components/workout/plan-form"
 
 interface NewWorkoutPlanTemplateCreatePageProps {
-  searchParams: {
+  searchParams: Promise<{
     type?: string;
     split?: string;
-  }
+  }>
 }
 
 export default async function NewWorkoutPlanTemplateCreatePage({
@@ -22,7 +21,8 @@ export default async function NewWorkoutPlanTemplateCreatePage({
     redirect("/api/auth/signin")
   }
 
-  const { type, split } = searchParams
+  const params = await searchParams
+  const { type, split } = params
   
   if (!type || !split || !WORKOUT_TEMPLATES[type as keyof typeof WORKOUT_TEMPLATES]?.[split]) {
     redirect("/workout/plans/new/template")
