@@ -49,10 +49,25 @@ export default async function EditWorkoutPlanPage({
     },
   })
   
+  // Transform the workout plan data into the format expected by the form
+  const defaultValues = {
+    name: workoutPlan.name,
+    exercises: workoutPlan.exercises.map(e => ({
+      exerciseId: e.exerciseId,
+      defaultSets: e.defaultSets,
+      defaultReps: e.defaultReps,
+      startingWeight: e.startingWeight,
+    }))
+  }
+  
   return (
     <div className="container py-6 max-w-4xl">
       <h1 className="text-2xl font-bold mb-6">Edit Workout Plan</h1>
-      <WorkoutPlanForm workoutPlan={workoutPlan} exercises={exercises} />
+      <WorkoutPlanForm 
+        exercises={exercises} 
+        defaultValues={defaultValues}
+        planId={workoutPlan.id}
+      />
     </div>
   )
 } 

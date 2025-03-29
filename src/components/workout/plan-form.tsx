@@ -59,12 +59,14 @@ interface WorkoutPlanFormProps {
   };
   exercises: Exercise[];
   onSuccess?: () => void;
+  planId?: string;
 }
 
 export function WorkoutPlanForm({
   defaultValues,
   exercises: initialExercises,
   onSuccess,
+  planId,
 }: WorkoutPlanFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -85,8 +87,8 @@ export function WorkoutPlanForm({
     setIsSubmitting(true)
     
     try {
-      const response = await fetch("/api/workout/plans", {
-        method: "POST",
+      const response = await fetch(`/api/workout/plans${planId ? `/${planId}` : ''}`, {
+        method: planId ? "PATCH" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -278,7 +280,7 @@ export function WorkoutPlanForm({
           </div>
 
           <Button type="submit" disabled={isSubmitting}>
-            Create Plan
+            {planId ? "Update Plan" : "Create Plan"}
           </Button>
         </form>
       </Form>
