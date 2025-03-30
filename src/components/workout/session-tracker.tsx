@@ -204,10 +204,30 @@ export function WorkoutSessionTracker({
   }
 
   const handleProgression = async () => {
-    if (!activeExerciseId) return
+    if (!activeSetId || !activeExerciseId) return
+    
+    // Find the exercise group
+    const exerciseGroup = exercises.find(group => group.exerciseId === activeExerciseId)
+    if (!exerciseGroup) {
+      console.error("Exercise group not found for ID:", activeExerciseId)
+      toast.error("Could not find exercise data")
+      return
+    }
+    
+    // Get all available exercise data for debugging
+    const activeSet = sets[activeSetId]
+    
+    console.log("Active Set:", activeSet)
+    console.log("Active Set ID:", activeSetId)
+    console.log("Active Exercise ID from state:", activeExerciseId)
+    console.log("Exercise Group:", exerciseGroup)
+    console.log("Exercise Group ID:", exerciseGroup.exerciseId)
+    console.log("API URL:", `/api/exercises/${exerciseGroup.exerciseId}/progression`)
+    
+    toast.info("Saving progression data...", { duration: 2000 })
     
     try {
-      await fetch(`/api/exercises/${activeExerciseId}/progression`, {
+      const response = await fetch(`/api/exercises/${exerciseGroup.exerciseId}/progression`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -217,8 +237,27 @@ export function WorkoutSessionTracker({
           progressionAmount,
         }),
       })
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Progression error:", response.status, errorText);
+        
+        if (response.status === 404) {
+          throw new Error("Exercise not found. It may have been deleted or you don't have access to it.");
+        } else if (response.status === 401) {
+          throw new Error("You're not authorized to update this exercise. Please log in again.");
+        } else {
+          throw new Error(`Failed to save progression: ${response.status} ${response.statusText}`);
+        }
+      }
+      
+      toast.success("Progression saved successfully!", { duration: 3000 })
     } catch (error) {
       console.error("Error updating progression:", error)
+      toast.error(`Error: ${error instanceof Error ? error.message : "Failed to save progression"}`, { 
+        duration: 5000,
+        description: "You can dismiss this message and continue your workout."
+      })
     }
     
     setShowProgressionDialog(false)
