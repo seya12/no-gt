@@ -95,6 +95,7 @@ export default async function WorkoutSessionPage({
       <div className="space-y-4">
         <WorkoutSessionTracker 
           exercises={groupedSets}
+          sessionId={id}
         />
       </div>
     </div>

@@ -4,6 +4,9 @@ import "./globals.css";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { MainNav } from "@/components/nav/main-nav";
 import { BottomNav } from "@/components/nav/bottom-nav";
+import { ThemeProvider } from "next-themes";
+import { Toaster } from "sonner";
+import { cn } from "@/lib/utils";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,21 +24,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <AuthProvider>
-          <div className="flex min-h-screen flex-col">
-            <header className="border-b hidden md:block">
-              <div className="container flex h-14 items-center">
-                <MainNav />
-              </div>
-            </header>
-            <main className="flex-1">
-              {children}
-            </main>
-            <BottomNav />
-          </div>
-        </AuthProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body 
+        className={cn("min-h-screen bg-background font-sans antialiased", inter.className)}
+      >
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthProvider>
+            <div className="flex min-h-screen flex-col">
+              <header className="border-b hidden md:block">
+                <div className="container flex h-14 items-center">
+                  <MainNav />
+                </div>
+              </header>
+              <main className="flex-1">
+                {children}
+              </main>
+              <BottomNav />
+            </div>
+            <Toaster />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
