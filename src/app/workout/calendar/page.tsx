@@ -65,20 +65,6 @@ export default async function CalendarPage({
     },
   });
   
-  // Fetch all workout plans for this user (for scheduling)
-  const workoutPlans = await prisma.workoutPlan.findMany({
-    where: {
-      userId: session.user.id,
-    },
-    orderBy: {
-      name: "asc",
-    },
-    select: {
-      id: true,
-      name: true,
-    },
-  });
-
   // Create navigation links
   const prevMonth = subMonths(currentDate, 1);
   const nextMonth = addMonths(currentDate, 1);
@@ -136,7 +122,6 @@ export default async function CalendarPage({
                   day={day}
                   today={today}
                   workouts={dayWorkouts}
-                  workoutPlans={workoutPlans}
                 />
               );
             })}

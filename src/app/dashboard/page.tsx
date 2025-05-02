@@ -175,40 +175,35 @@ export default async function DashboardPage({
               
               {/* Calendar cells for mobile */}
               {workoutsByDay.slice(2, 5).map((day) => (
-                <div 
+                <Link 
                   key={`cell-mobile-${day.date.toISOString()}`}
-                  className={`p-2 border rounded-md min-h-[120px] overflow-y-auto ${
+                  href={`/workout/day/${format(day.date, 'yyyy-MM-dd')}`}
+                  className={`block p-2 border rounded-md min-h-[120px] overflow-y-auto ${
                     day.isToday ? 'bg-accent/20 border-primary' : ''
                   }`}
                 >
                   <div className="space-y-1">
                     {day.workouts.length > 0 ? (
                       day.workouts.map((workout) => (
-                        <Link 
-                          key={workout.id} 
-                          href={`/workout/session/${workout.id}`}
-                          className="block"
-                        >
-                          <div className={`text-xs p-2 rounded truncate hover:bg-accent/50 transition-colors ${
+                        <div 
+                          key={workout.id}
+                          className={`text-xs p-2 rounded truncate hover:bg-accent/50 transition-colors ${
                             workout.scheduled ? 'bg-accent/30' : 'bg-primary/20'
-                          }`}>
-                            {workout.workoutPlan.name}
-                          </div>
-                        </Link>
+                          }`}
+                        >
+                          {workout.workoutPlan.name}
+                        </div>
                       ))
                     ) : (
-                      <Link 
-                        href={`/workout/calendar?month=${day.date.getMonth() + 1}&year=${day.date.getFullYear()}`}
-                        className="flex h-full min-h-[40px] items-center justify-center"
-                      >
+                      <div className="flex h-full min-h-[40px] items-center justify-center">
                         <Button variant="ghost" size="sm" className="h-8 text-xs">
                           <PlusCircle className="h-3 w-3 mr-1" />
-                          Add
+                          {day.isToday ? "Start" : "Add"}
                         </Button>
-                      </Link>
+                      </div>
                     )}
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
             <div className="flex justify-center mt-2">
@@ -237,40 +232,35 @@ export default async function DashboardPage({
               
               {/* Calendar cells for desktop */}
               {workoutsByDay.map((day) => (
-                <div 
+                <Link 
                   key={`cell-desktop-${day.date.toISOString()}`}
-                  className={`p-2 border rounded-md min-h-[100px] overflow-y-auto ${
+                  href={`/workout/day/${format(day.date, 'yyyy-MM-dd')}`}
+                  className={`block p-2 border rounded-md min-h-[100px] overflow-y-auto ${
                     day.isToday ? 'bg-accent/20 border-primary' : ''
                   }`}
                 >
                   <div className="space-y-1">
                     {day.workouts.length > 0 ? (
                       day.workouts.map((workout) => (
-                        <Link 
-                          key={workout.id} 
-                          href={`/workout/session/${workout.id}`}
-                          className="block"
-                        >
-                          <div className={`text-xs p-1.5 rounded truncate hover:bg-accent/50 transition-colors ${
+                        <div 
+                          key={workout.id}
+                          className={`text-xs p-1.5 rounded truncate hover:bg-accent/50 transition-colors ${
                             workout.scheduled ? 'bg-accent/30' : 'bg-primary/20'
-                          }`}>
-                            {workout.workoutPlan.name}
-                          </div>
-                        </Link>
+                          }`}
+                        >
+                          {workout.workoutPlan.name}
+                        </div>
                       ))
                     ) : (
-                      <Link 
-                        href={`/workout/calendar?month=${day.date.getMonth() + 1}&year=${day.date.getFullYear()}`}
-                        className="flex h-full min-h-[40px] items-center justify-center"
-                      >
+                      <div className="flex h-full min-h-[40px] items-center justify-center">
                         <Button variant="ghost" size="sm" className="h-6 text-xs">
                           <PlusCircle className="h-3 w-3 mr-1" />
-                          Add
+                          {day.isToday ? "Start" : "Add"}
                         </Button>
-                      </Link>
+                      </div>
                     )}
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
