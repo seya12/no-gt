@@ -31,8 +31,8 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
             <div className="flex min-h-screen flex-col">
-              <header className="border-b hidden md:block">
-                <div className="container flex h-14 items-center">
+              <header className="border-b hidden md:block w-full">
+                <div className="flex h-14 items-center w-full">
                   <MainNav />
                 </div>
               </header>

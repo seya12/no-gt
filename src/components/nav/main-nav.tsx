@@ -13,7 +13,7 @@ export function MainNav() {
   const isAuthenticated = status === "authenticated"
 
   return (
-    <div className="flex w-full justify-between items-center">
+    <div className="relative flex w-full items-center px-6 sm:px-10 lg:px-16">
       <nav className="flex items-center space-x-4 lg:space-x-6">
         <Link
           href="/"
@@ -61,7 +61,7 @@ export function MainNav() {
           variant="ghost" 
           size="sm" 
           onClick={() => signOut({ callbackUrl: "/" })}
-          className="flex items-center"
+          className="absolute right-6 sm:right-10 lg:right-16"
         >
           <LogOut className="h-4 w-4 mr-1" />
           Sign out
