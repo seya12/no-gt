@@ -84,58 +84,72 @@ export function CalendarDay({ day, today, workouts, workoutPlans }: CalendarDayP
     }
   }
 
+  // For mobile displays, calculate if we need to truncate content
+  const totalWorkouts = completedWorkouts.length + scheduledWorkouts.length;
+  const showAddButton = !isPast && workoutPlans.length > 0;
+
   return (
     <div 
-      className={`p-2 border rounded-md h-24 overflow-y-auto relative ${
+      className={`p-1 sm:p-2 border rounded-md h-full min-h-[70px] overflow-y-auto relative ${
         isToday ? 'bg-accent/50 border-primary' : isPast ? 'bg-muted/10' : ''
       }`}
     >
-      <div className="font-medium">{format(day, 'd')}</div>
+      <div className="text-xs sm:text-base font-medium">{format(day, 'd')}</div>
       
-      <div className="space-y-1 mt-1">
-        {/* Completed workouts */}
-        {completedWorkouts.map((workout) => (
-          <Link 
-            key={workout.id} 
-            href={`/workout/session/${workout.id}`}
-          >
-            <div className="text-xs p-1 bg-primary/10 rounded truncate">
-              {workout.workoutPlan.name}
-            </div>
-          </Link>
-        ))}
-        
-        {/* Scheduled workouts */}
-        {scheduledWorkouts.map((workout) => (
-          <Link 
-            key={workout.id} 
-            href={`/workout/session/${workout.id}`}
-          >
-            <div className="text-xs p-1 bg-accent/30 rounded truncate flex items-center">
-              <CalendarClock className="h-3 w-3 mr-1 opacity-70" />
-              {workout.workoutPlan.name}
-            </div>
-          </Link>
-        ))}
+      <div className="space-y-0.5 sm:space-y-1 mt-0.5 sm:mt-1">
+        {/* If too many workouts for mobile, show count instead */}
+        {totalWorkouts > 2 && window.innerWidth < 640 ? (
+          <div className="text-[10px] sm:text-xs p-0.5 sm:p-1 bg-secondary/20 rounded text-center">
+            {totalWorkouts} workouts
+          </div>
+        ) : (
+          <>
+            {/* Completed workouts */}
+            {completedWorkouts.map((workout) => (
+              <Link 
+                key={workout.id} 
+                href={`/workout/session/${workout.id}`}
+              >
+                <div className="text-[10px] sm:text-xs p-0.5 sm:p-1 bg-primary/10 rounded truncate">
+                  {workout.workoutPlan.name}
+                </div>
+              </Link>
+            ))}
+            
+            {/* Scheduled workouts */}
+            {scheduledWorkouts.map((workout) => (
+              <Link 
+                key={workout.id} 
+                href={`/workout/session/${workout.id}`}
+              >
+                <div className="text-[10px] sm:text-xs p-0.5 sm:p-1 bg-accent/30 rounded truncate flex items-center">
+                  <CalendarClock className="h-2 w-2 sm:h-3 sm:w-3 mr-0.5 sm:mr-1 opacity-70" />
+                  {workout.workoutPlan.name}
+                </div>
+              </Link>
+            ))}
+          </>
+        )}
       </div>
       
       {/* Add Workout button - only for today and future days */}
-      {!isPast && workoutPlans.length > 0 && (
+      {showAddButton && (
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button 
               size="icon" 
               variant="ghost" 
-              className="absolute bottom-1 right-1 h-5 w-5 p-0.5 opacity-50 hover:opacity-100"
+              className="absolute bottom-0.5 right-0.5 sm:bottom-1 sm:right-1 h-4 w-4 sm:h-5 sm:w-5 p-0 sm:p-0.5 opacity-50 hover:opacity-100"
             >
-              <PlusCircle className="h-4 w-4" />
+              <PlusCircle className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-[90vw] sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Schedule Workout for {format(day, 'MMM d, yyyy')}</DialogTitle>
+              <DialogTitle>Schedule Workout</DialogTitle>
             </DialogHeader>
-            <div className="py-4">
+            <div className="py-3 sm:py-4">
+              <p className="text-sm mb-2">{format(day, 'MMMM d, yyyy')}</p>
               <label className="text-sm font-medium mb-2 block">
                 Select Workout Plan
               </label>
@@ -156,6 +170,7 @@ export function CalendarDay({ day, today, workouts, workoutPlans }: CalendarDayP
               <Button 
                 onClick={scheduleWorkout} 
                 disabled={!selectedPlanId || isScheduling}
+                className="w-full sm:w-auto"
               >
                 {isScheduling ? "Scheduling..." : "Schedule Workout"}
               </Button>

@@ -87,9 +87,9 @@ export default async function CalendarPage({
   const nextMonthLink = `/workout/calendar?month=${nextMonth.getMonth() + 1}&year=${nextMonth.getFullYear()}`;
 
   return (
-    <div className="container mx-auto p-4 pb-20 space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+    <div className="container mx-auto p-2 sm:p-4 pb-16 flex flex-col h-[calc(100vh-4rem)] space-y-4">
+      <Card className="flex-1 flex flex-col">
+        <CardHeader className="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0 p-4">
           <CardTitle className="text-xl font-bold">Workout Calendar</CardTitle>
           <div className="flex items-center space-x-2">
             <Link href={prevMonthLink}>
@@ -97,7 +97,7 @@ export default async function CalendarPage({
                 <ChevronLeft className="h-4 w-4" />
               </Button>
             </Link>
-            <div className="font-medium">
+            <div className="font-medium min-w-[120px] text-center">
               {format(currentDate, 'MMMM yyyy')}
             </div>
             <Link href={nextMonthLink}>
@@ -107,17 +107,21 @@ export default async function CalendarPage({
             </Link>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-7 gap-1 text-center">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-              <div key={day} className="p-2 font-semibold">
-                {day}
+        <CardContent className="p-1 sm:p-4 flex-1 flex flex-col">
+          {/* Day labels - abbreviate on mobile */}
+          <div className="grid grid-cols-7 gap-1 text-center mb-1">
+            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+              <div key={day + i} className="p-1 font-medium text-xs sm:text-sm sm:p-2">
+                <span className="hidden sm:inline">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i]}</span>
+                <span className="sm:hidden">{day}</span>
               </div>
             ))}
+          </div>
 
+          <div className="grid grid-cols-7 gap-1 flex-1 h-full">
             {/* Add empty cells for days before the start of the month */}
             {Array.from({ length: monthStart.getDay() }).map((_, i) => (
-              <div key={`empty-start-${i}`} className="p-2 h-24"></div>
+              <div key={`empty-start-${i}`} className="p-1 h-auto"></div>
             ))}
 
             {/* Calendar days */}
@@ -139,11 +143,23 @@ export default async function CalendarPage({
 
             {/* Add empty cells for days after the end of the month */}
             {Array.from({ length: 6 - monthEnd.getDay() }).map((_, i) => (
-              <div key={`empty-end-${i}`} className="p-2 h-24"></div>
+              <div key={`empty-end-${i}`} className="p-1 h-auto"></div>
             ))}
           </div>
         </CardContent>
       </Card>
+      
+      {/* Legend */}
+      <div className="text-xs sm:text-sm flex justify-center space-x-4">
+        <div className="flex items-center">
+          <div className="w-3 h-3 bg-primary/10 rounded mr-1"></div>
+          <span>Completed</span>
+        </div>
+        <div className="flex items-center">
+          <div className="w-3 h-3 bg-accent/30 rounded mr-1"></div>
+          <span>Scheduled</span>
+        </div>
+      </div>
     </div>
   );
 } 
