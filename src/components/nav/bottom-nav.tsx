@@ -3,17 +3,17 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Home, Dumbbell, PlusCircle, User, ClipboardList } from "lucide-react"
+import { LayoutDashboard, Dumbbell, PlusCircle, User, ClipboardList } from "lucide-react"
 
 export function BottomNav() {
   const pathname = usePathname()
   
   const navItems = [
     {
-      name: "Home",
-      href: "/",
-      icon: Home,
-      active: pathname === "/"
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: LayoutDashboard,
+      active: pathname === "/dashboard" || pathname === "/"
     },
     {
       name: "Exercises",
