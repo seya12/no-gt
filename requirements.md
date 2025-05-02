@@ -136,17 +136,17 @@
 - [ ] Offline functionality
 - [ ] Exercise categories and tags
 - [ ] Filter and search functionality for workout history
-- [ ] Calendar Integration
-  - [ ] Plan workouts via calendar interface
-  - [ ] View past workouts in calendar view
-  - [ ] Schedule future workouts
-  - [ ] UI overhaul for dashboard to accommodate calendar features
+- [x] Calendar Integration
+  - [x] Plan workouts via calendar interface
+  - [x] View past workouts in calendar view
+  - [x] Schedule future workouts
+  - [x] UI overhaul for dashboard to accommodate calendar features
 
 ## Bugfixes
 
-- [ ] Desktop Navigation Bar Alignment
-  - [ ] Fix "Home" section positioning (too far left)
-  - [ ] Fix "Sign Out" button positioning (not far enough right)
-- [ ] Mobile Quick Access Section
-  - [ ] Add proper padding to ensure visibility
-  - [ ] Review responsive design for quick access components
+- [x] Desktop Navigation Bar Alignment
+  - [x] Fix "Home" section positioning (too far left)
+  - [x] Fix "Sign Out" button positioning (not far enough right)
+- [x] Mobile Quick Access Section
+  - [x] Add proper padding to ensure visibility
+  - [x] Review responsive design for quick access components

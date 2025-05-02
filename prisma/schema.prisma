@@ -105,6 +105,7 @@ model WorkoutSession {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   completedAt DateTime?
+  scheduled   Boolean  @default(false)
   userId      String
   workoutPlanId String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)

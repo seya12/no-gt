@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CalendarDay } from "@/components/workout/calendar-day";
 
 interface CalendarPageProps {
   searchParams: Promise<{
@@ -63,6 +64,20 @@ export default async function CalendarPage({
       date: "asc",
     },
   });
+  
+  // Fetch all workout plans for this user (for scheduling)
+  const workoutPlans = await prisma.workoutPlan.findMany({
+    where: {
+      userId: session.user.id,
+    },
+    orderBy: {
+      name: "asc",
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
 
   // Create navigation links
   const prevMonth = subMonths(currentDate, 1);
@@ -72,7 +87,7 @@ export default async function CalendarPage({
   const nextMonthLink = `/workout/calendar?month=${nextMonth.getMonth() + 1}&year=${nextMonth.getFullYear()}`;
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="container mx-auto p-4 pb-20 space-y-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xl font-bold">Workout Calendar</CardTitle>
@@ -111,29 +126,14 @@ export default async function CalendarPage({
                 isSameDay(new Date(workout.date), day)
               );
               
-              const isToday = isSameDay(day, today);
-              
               return (
-                <div 
-                  key={day.toISOString()} 
-                  className={`p-2 border rounded-md h-24 overflow-y-auto ${
-                    isToday ? 'bg-accent/50 border-primary' : ''
-                  }`}
-                >
-                  <div className="font-medium">{format(day, 'd')}</div>
-                  <div className="space-y-1 mt-1">
-                    {dayWorkouts.map((workout) => (
-                      <Link 
-                        key={workout.id} 
-                        href={`/workout/session/${workout.id}`}
-                      >
-                        <div className="text-xs p-1 bg-primary/10 rounded truncate">
-                          {workout.workoutPlan.name}
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
+                <CalendarDay
+                  key={day.toISOString()}
+                  day={day}
+                  today={today}
+                  workouts={dayWorkouts}
+                  workoutPlans={workoutPlans}
+                />
               );
             })}
 
