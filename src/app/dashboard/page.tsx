@@ -39,11 +39,15 @@ async function getActivePlans(userId: string) {
   });
 }
 
+interface DashboardPageProps {
+  searchParams: Promise<{
+    date?: string
+  }>
+}
+
 export default async function DashboardPage({
   searchParams,
-}: {
-  searchParams: { date?: string }
-}) {
+}: DashboardPageProps) {
   const session = await getServerSession(authConfig)
   
   if (!session) {
@@ -52,7 +56,8 @@ export default async function DashboardPage({
   
   // Handle date from query or use current date
   const today = new Date();
-  const selectedDate = searchParams.date ? parseISO(searchParams.date) : today;
+  const { date } = await searchParams;
+  const selectedDate = date ? parseISO(date) : today;
   
   // Get a 7-day range centered on the selected date
   const startDate = subDays(selectedDate, 3);
