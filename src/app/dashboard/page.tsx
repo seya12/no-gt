@@ -50,7 +50,7 @@ export default async function DashboardPage() {
   const activePlans = await getActivePlans(session.user.id);
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="container mx-auto p-4 pb-20 space-y-6">
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-4">
         <Link href="/workout/start">
@@ -148,16 +148,16 @@ export default async function DashboardPage() {
         <CardHeader>
           <CardTitle>Quick Access</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6">
           <div className="grid grid-cols-2 gap-4">
             <Link href="/exercises">
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start px-3 sm:px-4">
                 <ListChecks className="mr-2 h-4 w-4" />
                 Exercises
               </Button>
             </Link>
             <Link href="/workout/calendar">
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start px-3 sm:px-4">
                 <Calendar className="mr-2 h-4 w-4" />
                 Calendar
               </Button>
