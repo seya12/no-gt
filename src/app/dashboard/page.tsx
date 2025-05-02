@@ -82,12 +82,16 @@ export default async function DashboardPage({
   // Get all plans for more context
   const activePlans = await getActivePlans(session.user.id);
   
-  // Navigation links
-  const prevWeek = subDays(selectedDate, 7);
-  const nextWeek = addDays(selectedDate, 7);
+  // Navigation links - different offsets for mobile vs desktop
+  const prevWeek = subDays(selectedDate, 7);  // Desktop: 7 days
+  const nextWeek = addDays(selectedDate, 7);  // Desktop: 7 days
+  const prev3Days = subDays(selectedDate, 3);  // Mobile: 3 days
+  const next3Days = addDays(selectedDate, 3);  // Mobile: 3 days
   
   const prevWeekLink = `/dashboard?date=${format(prevWeek, 'yyyy-MM-dd')}`;
   const nextWeekLink = `/dashboard?date=${format(nextWeek, 'yyyy-MM-dd')}`;
+  const prev3DaysLink = `/dashboard?date=${format(prev3Days, 'yyyy-MM-dd')}`;
+  const next3DaysLink = `/dashboard?date=${format(next3Days, 'yyyy-MM-dd')}`;
   const todayLink = `/dashboard?date=${format(today, 'yyyy-MM-dd')}`;
 
   return (
@@ -120,7 +124,13 @@ export default async function DashboardPage({
             Workout Calendar
           </CardTitle>
           <div className="flex items-center space-x-2">
-            <Link href={prevWeekLink}>
+            {/* Different navigation links for mobile vs desktop */}
+            <Link href={prev3DaysLink} className="sm:hidden">
+              <Button variant="outline" size="icon">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+            <Link href={prevWeekLink} className="hidden sm:flex">
               <Button variant="outline" size="icon">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -128,7 +138,12 @@ export default async function DashboardPage({
             <Link href={todayLink}>
               <Button variant="outline" size="sm">Today</Button>
             </Link>
-            <Link href={nextWeekLink}>
+            <Link href={next3DaysLink} className="sm:hidden">
+              <Button variant="outline" size="icon">
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </Link>
+            <Link href={nextWeekLink} className="hidden sm:flex">
               <Button variant="outline" size="icon">
                 <ChevronRight className="h-4 w-4" />
               </Button>
