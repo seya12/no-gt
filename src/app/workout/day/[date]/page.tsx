@@ -9,7 +9,7 @@ import {
   ChevronLeft,
   Calendar, 
   Dumbbell, 
-  PlusCircle
+  PlusCircle 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -192,46 +192,46 @@ export default async function DayPage({ params }: DayPageProps) {
         <div className="space-y-6">
           {/* Scheduled workouts section */}
           <div className="space-y-4">
-            {workouts.some(w => w.scheduled) && (
+          {workouts.some(w => w.scheduled) && (
               <>
-                <h2 className="text-lg font-medium flex items-center">
-                  <CalendarClock className="h-5 w-5 mr-2" />
-                  Scheduled for Today
-                </h2>
-                <div className="space-y-4">
-                  {workouts
-                    .filter(w => w.scheduled)
-                    .map((workout) => (
-                      <Card key={workout.id} className="border-accent">
-                        <CardHeader>
-                          <div className="flex justify-between items-center">
-                            <CardTitle>{workout.workoutPlan.name}</CardTitle>
-                            <Badge variant="outline" className="bg-accent/20">Scheduled</Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex flex-wrap gap-2 mb-2">
-                            {Array.from(new Set(workout.sets.map(set => set.exercise.name))).map((name) => (
-                              <Badge key={name} variant="secondary">
-                                {name}
-                              </Badge>
-                            ))}
-                          </div>
-                        </CardContent>
-                        <CardFooter>
+              <h2 className="text-lg font-medium flex items-center">
+                <CalendarClock className="h-5 w-5 mr-2" />
+                Scheduled for Today
+              </h2>
+              <div className="space-y-4">
+                {workouts
+                  .filter(w => w.scheduled)
+                  .map((workout) => (
+                    <Card key={workout.id} className="border-accent">
+                      <CardHeader>
+                        <div className="flex justify-between items-center">
+                          <CardTitle>{workout.workoutPlan.name}</CardTitle>
+                          <Badge variant="outline" className="bg-accent/20">Scheduled</Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {Array.from(new Set(workout.sets.map(set => set.exercise.name))).map((name) => (
+                            <Badge key={name} variant="secondary">
+                              {name}
+                            </Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                      <CardFooter>
                           <Link href={`/workout/session/${workout.id}`} className="w-full mb-2">
-                            <Button className="w-full">
-                              <Dumbbell className="h-4 w-4 mr-2" />
-                              Start This Workout
-                            </Button>
-                          </Link>
+                          <Button className="w-full">
+                            <Dumbbell className="h-4 w-4 mr-2" />
+                            Start This Workout
+                          </Button>
+                        </Link>
                           <ScheduleActions workoutId={workout.id} />
-                        </CardFooter>
-                      </Card>
-                    ))}
-                </div>
+                      </CardFooter>
+                    </Card>
+                  ))}
+              </div>
               </>
-            )}
+          )}
             {/* Always show the schedule button - Replaced with a list of plans to schedule */}
             <div className="space-y-2 mt-4">
               <h3 className="text-md font-medium">
@@ -239,23 +239,23 @@ export default async function DayPage({ params }: DayPageProps) {
               </h3>
               {workoutPlans.length > 0 ? (
                 workoutPlans.map((plan) => (
-                  <Link 
-                    key={plan.id} 
+                        <Link
+                          key={plan.id}
                     href={`/workout/schedule?planId=${plan.id}&date=${date}`} 
-                    className="block w-full"
-                  >
-                    <Button variant="outline" className="w-full justify-start">
+                          className="block w-full"
+                        >
+                          <Button variant="outline" className="w-full justify-start">
                       <Calendar className="h-4 w-4 mr-2" />
-                      {plan.name}
-                    </Button>
-                  </Link>
+                            {plan.name}
+                          </Button>
+                        </Link>
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground">
                   You have no workout plans to schedule. Create a plan first.
                 </p>
               )}
-            </div>
+                  </div>
           </div>
         </div>
       )}
@@ -264,41 +264,41 @@ export default async function DayPage({ params }: DayPageProps) {
       {isFuture && (
         <div className="space-y-6">
           {/* Scheduled workouts section */}
-          <div className="space-y-4">
+            <div className="space-y-4">
             {workouts.some(w => w.scheduled) && (
               <>
-                <h2 className="text-lg font-medium flex items-center">
-                  <CalendarClock className="h-5 w-5 mr-2" />
-                  Scheduled Workouts
-                </h2>
-                <div className="space-y-4">
-                  {workouts
-                    .filter(w => w.scheduled)
-                    .map((workout) => (
-                      <Card key={workout.id} className="border-accent">
-                        <CardHeader>
-                          <div className="flex justify-between items-center">
-                            <CardTitle>{workout.workoutPlan.name}</CardTitle>
-                            <Badge variant="outline" className="bg-accent/20">Scheduled</Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex flex-wrap gap-2 mb-2">
-                            {Array.from(new Set(workout.sets.map(set => set.exercise.name))).map((name) => (
-                              <Badge key={name} variant="secondary">
-                                {name}
-                              </Badge>
-                            ))}
-                          </div>
-                        </CardContent>
-                        <CardFooter>
-                          <ScheduleActions 
-                            workoutId={workout.id} 
-                          />
-                        </CardFooter>
-                      </Card>
-                    ))}
-                </div>
+              <h2 className="text-lg font-medium flex items-center">
+                <CalendarClock className="h-5 w-5 mr-2" />
+                Scheduled Workouts
+              </h2>
+              <div className="space-y-4">
+                {workouts
+                  .filter(w => w.scheduled)
+                  .map((workout) => (
+                    <Card key={workout.id} className="border-accent">
+                      <CardHeader>
+                        <div className="flex justify-between items-center">
+                          <CardTitle>{workout.workoutPlan.name}</CardTitle>
+                          <Badge variant="outline" className="bg-accent/20">Scheduled</Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {Array.from(new Set(workout.sets.map(set => set.exercise.name))).map((name) => (
+                            <Badge key={name} variant="secondary">
+                              {name}
+                            </Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                      <CardFooter>
+                        <ScheduleActions 
+                          workoutId={workout.id} 
+                        />
+                      </CardFooter>
+                    </Card>
+                  ))}
+              </div>
               </>
             )}
             {/* Always show the schedule button - Replaced with a list of plans to schedule */}
@@ -306,24 +306,24 @@ export default async function DayPage({ params }: DayPageProps) {
               <h3 className="text-md font-medium">
                 {workouts.some(w => w.scheduled) ? 'Schedule Another Workout:' : 'Schedule a Workout:'}
               </h3>
-              {workoutPlans.length > 0 ? (
+                  {workoutPlans.length > 0 ? (
                 workoutPlans.map((plan) => (
-                  <Link 
-                    key={plan.id} 
-                    href={`/workout/schedule?planId=${plan.id}&date=${date}`} 
-                    className="block w-full"
-                  >
-                    <Button variant="outline" className="w-full justify-start">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      {plan.name}
-                    </Button>
-                  </Link>
+                          <Link
+                            key={plan.id}
+                            href={`/workout/schedule?planId=${plan.id}&date=${date}`}
+                            className="block w-full"
+                          >
+                            <Button variant="outline" className="w-full justify-start">
+                              <Calendar className="h-4 w-4 mr-2" />
+                              {plan.name}
+                            </Button>
+                          </Link>
                 ))
-              ) : (
+                  ) : (
                 <p className="text-sm text-muted-foreground">
                   You have no workout plans to schedule. Create a plan first.
                 </p>
-              )}
+                  )}
             </div>
           </div>
         </div>
