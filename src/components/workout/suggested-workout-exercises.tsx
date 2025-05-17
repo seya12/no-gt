@@ -8,6 +8,8 @@ import { SUGGESTED_EXERCISES } from "@/lib/constants/exercises";
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner";
+import { createExerciseAction } from "@/app/actions/exerciseActions";
 
 interface SuggestedWorkoutExercisesProps {
   availableExercises: Exercise[];
@@ -26,67 +28,72 @@ export function SuggestedWorkoutExercises({
   const [customExercise, setCustomExercise] = useState({ name: "", description: "" });
   const [isCreatingCustom, setIsCreatingCustom] = useState(false);
 
-  // Create custom exercise
   const handleCreateCustomExercise = async () => {
     if (!customExercise.name || isCreatingCustom) return;
     
     setIsCreatingCustom(true);
     
+    const formData = new FormData();
+    formData.append("name", customExercise.name);
+    if (customExercise.description) {
+      formData.append("description", customExercise.description);
+    }
+
     try {
-      const response = await fetch('/api/exercises', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(customExercise),
-      });
+      const result = await createExerciseAction(undefined, formData);
       
-      if (!response.ok) {
-        throw new Error('Failed to create exercise');
+      if (result.success && result.exercise) {
+        toast.success(`Exercise '${result.exercise.name}' created successfully!`);
+        if (onExerciseCreated) {
+          onExerciseCreated(result.exercise);
+        }
+        setCustomExercise({ name: "", description: "" });
+        setMode("exercises");
+      } else {
+        const errorMessage = result.error || "Failed to create custom exercise.";
+        toast.error(errorMessage);
+        // Log details for debugging if needed
+        if (result.details) {
+          console.error("Custom exercise creation error details:", result.details);
+        }
       }
-      
-      const newExercise = await response.json();
-      
-      if (onExerciseCreated) {
-        onExerciseCreated(newExercise);
-      }
-      
-      // Reset form
-      setCustomExercise({ name: "", description: "" });
-      setMode("exercises");
     } catch (error) {
       console.error('Error creating custom exercise:', error);
+      toast.error("An unexpected error occurred while creating the exercise.");
     } finally {
       setIsCreatingCustom(false);
     }
   };
 
-  // Create and add an exercise
   const createAndAddExercise = async (name: string, description: string) => {
     setCreatingExercise(name);
     
+    const formData = new FormData();
+    formData.append("name", name);
+    if (description) {
+      formData.append("description", description);
+    }
+
     try {
-      const response = await fetch('/api/exercises', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, description }),
-      });
+      const result = await createExerciseAction(undefined, formData);
       
-      if (!response.ok) {
-        throw new Error('Failed to create exercise');
+      if (result.success && result.exercise) {
+        // Toast might be too noisy here if it's immediately added. Consider a subtle success indication or none.
+        // toast.success(`Exercise '${result.exercise.name}' created and added!`); 
+        if (onExerciseCreated) {
+          onExerciseCreated(result.exercise);
+        }
+        onAddExercise(result.exercise.id, 3, 10); // Default sets/reps
+      } else {
+        const errorMessage = result.error || "Failed to create and add exercise.";
+        toast.error(errorMessage);
+        if (result.details) {
+          console.error("Create and add exercise error details:", result.details);
+        }
       }
-      
-      const newExercise = await response.json();
-      
-      if (onExerciseCreated) {
-        onExerciseCreated(newExercise);
-      }
-      
-      onAddExercise(newExercise.id, 3, 10);
     } catch (error) {
-      console.error('Error creating exercise:', error);
+      console.error('Error creating and adding exercise:', error);
+      toast.error("An unexpected error occurred.");
     } finally {
       setCreatingExercise(null);
     }

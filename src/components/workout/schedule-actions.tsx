@@ -5,38 +5,40 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { deleteWorkoutSessionAction, DeleteWorkoutSessionResponse } from "@/app/actions/workoutScheduleActions";
+import { Loader2 } from "lucide-react";
 
 interface ScheduleActionsProps {
   workoutId: string;
-  // returnUrl: string; // No longer used by delete, can be re-added if Reschedule needs it
 }
 
 export function ScheduleActions({ workoutId }: ScheduleActionsProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isRescheduling, setIsRescheduling] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const router = useRouter();
 
-  async function deleteWorkout() {
-    setIsLoading(true);
-    setIsDeleteDialogOpen(false);
-
-    try {
-      const response = await fetch(`/api/workout/schedule/${workoutId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete workout schedule");
-      }
-
-      toast.success("Workout schedule deleted");
-      router.refresh();
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to delete workout schedule. " + (error instanceof Error ? error.message : String(error)));
-    } finally {
-      setIsLoading(false);
+  const handleDeleteWorkout = async () => {
+    if (!workoutId) {
+      toast.error("Workout ID is missing.");
+      return;
     }
+    setIsDeleting(true);
+    const result: DeleteWorkoutSessionResponse = await deleteWorkoutSessionAction(workoutId);
+
+    if (result.success) {
+      toast.success("Workout schedule deleted.");
+      router.refresh();
+    } else {
+      toast.error(result.error || "Failed to delete workout schedule.");
+    }
+    setIsDeleting(false);
+    setIsDeleteDialogOpen(false);
+  };
+  
+  const handleReschedule = () => {
+    setIsRescheduling(true);
+    router.push(`/workout/schedule/edit/${workoutId}`);
   }
 
   return (
@@ -45,29 +47,37 @@ export function ScheduleActions({ workoutId }: ScheduleActionsProps) {
         <Button 
           variant="destructive"
           onClick={() => setIsDeleteDialogOpen(true)}
-          disabled={isLoading}
+          disabled={isDeleting || isRescheduling}
           className="flex-1"
         >
-          {isLoading ? "Deleting..." : "Delete"}
+          {isDeleting ? (
+            <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Deleting...</>
+          ) : (
+            "Delete"
+          )}
         </Button>
         
         <Button 
           variant="outline"
-          disabled={isLoading}
-          onClick={() => router.push(`/workout/schedule/edit/${workoutId}`)}
+          disabled={isDeleting || isRescheduling}
+          onClick={handleReschedule}
           className="flex-1"
         >
-          Reschedule
+          {isRescheduling ? (
+            <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading...</>
+          ) : (
+            "Reschedule"
+          )}
         </Button>
       </div>
 
       <ConfirmationDialog
         isOpen={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
-        onConfirm={deleteWorkout}
+        onConfirm={handleDeleteWorkout}
         title="Delete Scheduled Workout?"
         description="Are you sure you want to delete this scheduled workout? This action cannot be undone."
-        confirmText="Delete"
+        confirmText={isDeleting ? "Deleting..." : "Delete"}
       />
     </>
   );

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -31,6 +31,7 @@ import {
 import { Exercise } from "@prisma/client"
 import { SuggestedWorkoutExercises } from "./suggested-workout-exercises"
 import { Plus } from "lucide-react"
+import { createWorkoutPlanAction, updateWorkoutPlanAction } from "@/app/actions/workoutPlanActions"
 
 // Validation schema for the workout plan form
 const formSchema = z.object({
@@ -69,7 +70,7 @@ export function WorkoutPlanForm({
   planId,
 }: WorkoutPlanFormProps) {
   const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [isExerciseDialogOpen, setIsExerciseDialogOpen] = useState(false)
   const [exercises, setExercises] = useState(initialExercises)
 
@@ -84,33 +85,44 @@ export function WorkoutPlanForm({
 
   // Handle form submission
   async function onSubmit(values: FormValues) {
-    setIsSubmitting(true)
-    
-    try {
-      const response = await fetch(`/api/workout/plans${planId ? `/${planId}` : ''}`, {
-        method: planId ? "PATCH" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      })
-      
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || "Failed to save workout plan")
+    startTransition(async () => {
+      try {
+        if (planId) {
+          const result = await updateWorkoutPlanAction(planId, values);
+          if (result.success) {
+            if (onSuccess) {
+              onSuccess();
+            } else {
+              router.push("/workout/plans");
+              router.refresh(); 
+            }
+          } else {
+            console.error("Error updating workout plan:", result.error, result.details);
+            // TODO: Display error to user (e.g., using react-toast or form.setError)
+            // if (result.details?.fieldErrors) { ... }
+            // form.setError(\"root\", { message: result.error || \"Failed to update plan\" });
+          }
+        } else {
+          const result = await createWorkoutPlanAction(values);
+          if (result.success) {
+            if (onSuccess) {
+              onSuccess();
+            } else {
+              router.push("/workout/plans");
+              router.refresh();
+            }
+          } else {
+            console.error("Error creating workout plan:", result.error, result.details);
+            // TODO: Display error to user
+            // form.setError(\"root\", { message: result.error || \"Failed to create plan\" });
+          }
+        }
+      } catch (error) {
+        console.error("Unhandled error in form submission:", error);
+        // TODO: Display generic error to user
+        // form.setError(\"root\", { message: \"An unexpected error occurred.\" });
       }
-      
-      if (onSuccess) {
-        onSuccess()
-      } else {
-        router.push("/workout/plans")
-        router.refresh()
-      }
-    } catch (error) {
-      console.error("Error saving workout plan:", error)
-    } finally {
-      setIsSubmitting(false)
-    }
+    });
   }
 
   // Add an exercise from suggestions
@@ -150,7 +162,7 @@ export function WorkoutPlanForm({
   return (
     <>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-24 md:pb-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-32 md:pb-8">
           <FormField
             control={form.control}
             name="name"
@@ -158,7 +170,7 @@ export function WorkoutPlanForm({
               <FormItem>
                 <FormLabel>Workout Plan Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="My Workout Plan" {...field} />
+                  <Input placeholder="My Workout Plan" {...field} disabled={isPending} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -173,6 +185,7 @@ export function WorkoutPlanForm({
                 variant="outline"
                 size="sm"
                 onClick={() => setIsExerciseDialogOpen(true)}
+                disabled={isPending}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Exercise
@@ -279,9 +292,11 @@ export function WorkoutPlanForm({
             </div>
           </div>
 
-          <Button type="submit" disabled={isSubmitting}>
-            {planId ? "Update Plan" : "Create Plan"}
-          </Button>
+          <div className="fixed bottom-16 left-0 right-0 md:bottom-0 md:relative border-t md:border-none bg-background p-4 md:p-0 z-40">
+            <Button type="submit" className="w-full md:w-auto" disabled={isPending}>
+              {isPending ? "Saving..." : planId ? "Save Changes" : "Create Plan"}
+            </Button>
+          </div>
         </form>
       </Form>
 

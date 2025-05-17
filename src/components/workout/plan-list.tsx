@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Edit, Trash2, Play, Dumbbell } from "lucide-react"
+import { Edit, Trash2, Play, Dumbbell, Loader2 } from "lucide-react"
 import {
   Card,
   CardContent,
@@ -24,6 +24,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
+import { deleteWorkoutPlanAction } from "@/app/actions/workoutPlanActions"
+import { toast } from "sonner"
 
 type WorkoutPlanWithExercises = {
   id: string
@@ -57,26 +59,23 @@ export function WorkoutPlanList({ workoutPlans }: WorkoutPlanListProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [planToDelete, setPlanToDelete] = useState<WorkoutPlanWithExercises | null>(null)
+  const [isPending, startTransition] = useTransition()
 
   const handleDelete = async () => {
     if (!planToDelete) return
     
-    try {
-      const response = await fetch(`/api/workout/plans/${planToDelete.id}`, {
-        method: 'DELETE',
-      })
-      
-      if (response.ok) {
-        // Refresh the page to show updated list
+    startTransition(async () => {
+      const result: { success: boolean; error?: string } = await deleteWorkoutPlanAction(planToDelete.id)
+
+      if (result.success) {
+        toast.success(`Workout plan "${planToDelete.name}" deleted.`)
         router.refresh()
       } else {
-        console.error('Failed to delete workout plan')
+        toast.error(result.error || "Failed to delete workout plan.")
       }
-    } catch (error) {
-      console.error('Error deleting workout plan:', error)
-    } finally {
       setOpen(false)
-    }
+      setPlanToDelete(null)
+    })
   }
 
   return (
@@ -131,6 +130,7 @@ export function WorkoutPlanList({ workoutPlans }: WorkoutPlanListProps) {
                     setPlanToDelete(plan)
                     setOpen(true)
                   }}
+                  disabled={isPending}
                 >
                   <Trash2 className="mr-1 h-4 w-4" />
                   Delete
@@ -157,9 +157,17 @@ export function WorkoutPlanList({ workoutPlans }: WorkoutPlanListProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-              Delete
+            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90" 
+              disabled={isPending}
+            >
+              {isPending ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Deleting...</>
+              ) : (
+                "Delete"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

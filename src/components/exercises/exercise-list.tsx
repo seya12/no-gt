@@ -10,7 +10,7 @@ import {
   TableRow 
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Edit, Trash2 } from "lucide-react"
+import { Edit, Trash2, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import {
@@ -23,6 +23,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { toast } from "sonner"
+import { deleteExerciseAction } from "@/app/actions/exerciseActions"
+import { useRouter } from "next/navigation"
 
 type ExerciseListProps = {
   exercises: Exercise[]
@@ -30,24 +33,30 @@ type ExerciseListProps = {
 
 export function ExerciseList({ exercises }: ExerciseListProps) {
   const [open, setOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [exerciseToDelete, setExerciseToDelete] = useState<Exercise | null>(null)
+  const router = useRouter()
 
   const handleDelete = async () => {
     if (!exerciseToDelete) return
     
+    setIsDeleting(true)
     try {
-      const response = await fetch(`/api/exercises/${exerciseToDelete.id}`, {
-        method: 'DELETE',
-      })
+      const result = await deleteExerciseAction(exerciseToDelete.id)
       
-      if (response.ok) {
-        // Refresh the page to show updated list
-        window.location.reload()
+      if (result.success) {
+        toast.success(`Exercise "${exerciseToDelete.name}" deleted successfully.`)
+        router.refresh()
       } else {
-        console.error('Failed to delete exercise')
+        toast.error(result.error || "Failed to delete exercise.")
       }
     } catch (error) {
       console.error('Error deleting exercise:', error)
+      toast.error("An unexpected error occurred while deleting the exercise.")
+    } finally {
+      setIsDeleting(false)
+      setOpen(false)
+      setExerciseToDelete(null)
     }
   }
 
@@ -84,8 +93,12 @@ export function ExerciseList({ exercises }: ExerciseListProps) {
                         setExerciseToDelete(exercise)
                         setOpen(true)
                       }}
+                      disabled={isDeleting && exerciseToDelete?.id === exercise.id}
+                      className="text-destructive hover:text-destructive/90"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {isDeleting && exerciseToDelete?.id === exercise.id 
+                        ? <Loader2 className="h-4 w-4 animate-spin" /> 
+                        : <Trash2 className="h-4 w-4" />}
                     </Button>
                   </div>
                 </TableCell>
@@ -101,13 +114,19 @@ export function ExerciseList({ exercises }: ExerciseListProps) {
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete the exercise &quot;{exerciseToDelete?.name}&quot;
-              and remove it from any workout plans.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-              Delete
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={(e) => { 
+                e.preventDefault()
+                handleDelete()
+              }} 
+              disabled={isDeleting}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

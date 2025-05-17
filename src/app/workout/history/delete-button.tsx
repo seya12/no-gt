@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -13,7 +13,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useRouter } from "next/navigation";
+import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
+// Import the server action
+import { deleteWorkoutSessionAction, DeleteWorkoutSessionResponse } from "@/app/actions/workoutScheduleActions";
 
 interface DeleteWorkoutButtonProps {
   workoutId: string;
@@ -25,20 +28,21 @@ export default function DeleteWorkoutButton({ workoutId }: DeleteWorkoutButtonPr
   const router = useRouter();
 
   const handleDelete = async () => {
+    setIsDeleting(true);
     try {
-      setIsDeleting(true);
-      const response = await fetch(`/api/workout/sessions/${workoutId}`, {
-        method: "DELETE",
-      });
+      // Call the server action
+      const result: DeleteWorkoutSessionResponse = await deleteWorkoutSessionAction(workoutId);
 
-      if (!response.ok) {
-        throw new Error("Failed to delete workout");
+      if (result.success) {
+        toast.success("Workout deleted successfully.");
+        // Revalidation is handled by the server action, router.refresh() ensures UI update.
+        router.refresh(); 
+      } else {
+        toast.error(result.error || "Failed to delete workout.");
       }
-
-      // Refresh the page to show updated data
-      router.refresh();
     } catch (error) {
       console.error("Error deleting workout:", error);
+      toast.error("An unexpected error occurred while deleting the workout.");
     } finally {
       setIsDeleting(false);
       setOpen(false);
@@ -69,7 +73,7 @@ export default function DeleteWorkoutButton({ workoutId }: DeleteWorkoutButtonPr
             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
-                e.preventDefault();
+                e.preventDefault(); // Prevent default form submission if any
                 handleDelete();
               }}
               disabled={isDeleting}

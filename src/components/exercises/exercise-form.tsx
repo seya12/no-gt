@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
@@ -19,63 +18,95 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Exercise } from "@prisma/client"
 import { Loader2 } from "lucide-react"
+import { toast } from "sonner"
+import { createExerciseAction, updateExerciseAction } from "@/app/actions/exerciseActions"
 
-// Validation schema for exercise form
+// Validation schema for exercise form - aligning with server action
 const formSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
-  description: z.string().optional(),
+  description: z.string().max(500, "Description cannot exceed 500 characters").optional().nullable(),
 })
 
 type FormValues = z.infer<typeof formSchema>
 
 interface ExerciseFormProps {
   exercise?: Exercise | null
+  onSuccess?: () => void // Optional callback for success
 }
 
-export function ExerciseForm({ exercise = null }: ExerciseFormProps) {
+export function ExerciseForm({ exercise = null, onSuccess }: ExerciseFormProps) {
   const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
   
-  // Initialize form with default values or existing exercise data
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: exercise?.name || "",
-      description: exercise?.description || "",
+      description: exercise?.description || null, // Ensure null if not present
     },
   })
   
-  // Form submission handler
   const onSubmit = async (data: FormValues) => {
-    setIsSubmitting(true)
-    
-    try {
-      const url = exercise 
-        ? `/api/exercises/${exercise.id}`
-        : "/api/exercises"
-      
-      const method = exercise ? "PATCH" : "POST"
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      })
-      
-      if (response.ok) {
-        // Redirect to exercises list on success
-        router.push("/exercises")
-        router.refresh()
-      } else {
-        console.error("Form submission error:", await response.json())
-        setIsSubmitting(false)
-      }
-    } catch (error) {
-      console.error("Form submission error:", error)
-      setIsSubmitting(false)
+    const formData = new FormData()
+    formData.append("name", data.name)
+    if (data.description !== null && data.description !== undefined) {
+      formData.append("description", data.description)
     }
+
+    if (exercise && exercise.id) { // Update existing exercise
+      const result = await updateExerciseAction(exercise.id, undefined, formData)
+      
+      if (result.success) {
+        toast.success("Exercise updated successfully!")
+        if (onSuccess) {
+          onSuccess()
+        } else {
+          router.push("/exercises")
+        }
+        // router.refresh() // Revalidation handled by server action
+      } else {
+        let errorMessage = result.error || "Failed to update exercise."
+        if (result.details?.formErrors?.length) {
+          errorMessage = result.details.formErrors.join(", ")
+        }
+        toast.error(errorMessage)
+
+        if (result.details?.fieldErrors) {
+          if (result.details.fieldErrors.name) {
+            form.setError("name", { type: "server", message: result.details.fieldErrors.name.join(", ") })
+          }
+          if (result.details.fieldErrors.description) {
+            form.setError("description", { type: "server", message: result.details.fieldErrors.description.join(", ") })
+          }
+        }
+      }
+    } else { // Create new exercise (existing logic)
+      const result = await createExerciseAction(undefined, formData)
+      
+      if (result.success) {
+        toast.success("Exercise created successfully!")
+        if (onSuccess) {
+          onSuccess()
+        } else {
+          router.push("/exercises") 
+        }
+      } else {
+        let errorMessage = result.error || "Failed to create exercise."
+        if (result.details?.formErrors?.length) {
+          errorMessage = result.details.formErrors.join(", ")
+        }
+        toast.error(errorMessage)
+
+        if (result.details?.fieldErrors) {
+          if (result.details.fieldErrors.name) {
+            form.setError("name", { type: "server", message: result.details.fieldErrors.name.join(", ") })
+          }
+          if (result.details.fieldErrors.description) {
+            form.setError("description", { type: "server", message: result.details.fieldErrors.description.join(", ") })
+          }
+        }
+      }
+    }
+    // react-hook-form handles setting isSubmitting to false
   }
   
   return (
@@ -110,6 +141,8 @@ export function ExerciseForm({ exercise = null }: ExerciseFormProps) {
                     placeholder="A compound exercise that targets the chest, shoulders, and triceps."
                     className="min-h-[100px]"
                     {...field}
+                    value={field.value ?? ""} 
+                    onChange={(e) => field.onChange(e.target.value === "" ? null : e.target.value)}
                   />
                 </FormControl>
                 <FormDescription>
@@ -120,8 +153,8 @@ export function ExerciseForm({ exercise = null }: ExerciseFormProps) {
             )}
           />
 
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 {exercise ? "Updating..." : "Creating..."}
