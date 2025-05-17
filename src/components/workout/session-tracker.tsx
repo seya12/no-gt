@@ -11,7 +11,7 @@ import { ExerciseProgressionDialog } from "./exercise-progression-dialog"
 import { WorkoutCompletionDialog } from "./workout-completion-dialog"
 import { WorkoutProgressCard } from "./workout-progress-card"
 import { ExerciseTrackerCard } from "./exercise-tracker-card"
-import { RestTimerDisplay } from "./RestTimerDisplay"
+import { RestTimerDisplay } from "./rest-timer-display"
 import { updateWorkoutSetAction, UpdateWorkoutSetResponse } from "@/app/actions/workoutSetActions"
 
 interface ExerciseGroup {
