@@ -219,13 +219,15 @@ export default async function DayPage({ params }: DayPageProps) {
                         </div>
                       </CardContent>
                       <CardFooter>
-                          <Link href={`/workout/session/${workout.id}`} className="w-full mb-2">
-                          <Button className="w-full">
-                            <Dumbbell className="h-4 w-4 mr-2" />
-                            Start This Workout
-                          </Button>
-                        </Link>
+                        <div className="flex items-center space-x-2 w-full">
+                          <Link href={`/workout/session/${workout.id}`} className="flex-grow">
+                            <Button className="w-full">
+                              <Dumbbell className="h-4 w-4 mr-2" />
+                              Start This Workout
+                            </Button>
+                          </Link>
                           <ScheduleActions workoutId={workout.id} />
+                        </div>
                       </CardFooter>
                     </Card>
                   ))}

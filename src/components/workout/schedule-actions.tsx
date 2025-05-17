@@ -2,17 +2,25 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { deleteWorkoutSessionAction, DeleteWorkoutSessionResponse } from "@/app/actions/workoutScheduleActions";
-import { Loader2 } from "lucide-react";
+import { Loader2, MoreHorizontal, Edit, Trash2 } from "lucide-react";
 
 interface ScheduleActionsProps {
   workoutId: string;
 }
 
 export function ScheduleActions({ workoutId }: ScheduleActionsProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -43,33 +51,46 @@ export function ScheduleActions({ workoutId }: ScheduleActionsProps) {
 
   return (
     <>
-      <div className="flex justify-between w-full space-x-2">
-        <Button 
-          variant="destructive"
-          onClick={() => setIsDeleteDialogOpen(true)}
-          disabled={isDeleting || isRescheduling}
-          className="flex-1"
-        >
-          {isDeleting ? (
-            <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Deleting...</>
-          ) : (
-            "Delete"
-          )}
-        </Button>
-        
-        <Button 
-          variant="outline"
-          disabled={isDeleting || isRescheduling}
-          onClick={handleReschedule}
-          className="flex-1"
-        >
-          {isRescheduling ? (
-            <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading...</>
-          ) : (
-            "Reschedule"
-          )}
-        </Button>
-      </div>
+      <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm" className="flex h-8 w-8 p-0 data-[state=open]:bg-muted">
+            <MoreHorizontal className="h-4 w-4" />
+            <span className="sr-only">Open menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-[160px]">
+          <DropdownMenuItem 
+            onClick={() => { 
+              setIsMenuOpen(false);
+              handleReschedule(); 
+            }} 
+            disabled={isRescheduling || isDeleting}
+          >
+            {isRescheduling ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Edit className="mr-2 h-4 w-4" />
+            )}
+            Reschedule
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => {
+              setIsMenuOpen(false);
+              setIsDeleteDialogOpen(true);
+            }}
+            className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-700/10 dark:focus:text-red-500"
+            disabled={isDeleting || isRescheduling}
+          >
+            {isDeleting && !isDeleteDialogOpen ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="mr-2 h-4 w-4" />
+            )}
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <ConfirmationDialog
         isOpen={isDeleteDialogOpen}
