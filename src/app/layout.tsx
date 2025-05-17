@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import "react-day-picker/src/style.css";
+import "react-day-picker/style.css";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { MainNav } from "@/components/nav/main-nav";
 import { BottomNav } from "@/components/nav/bottom-nav";
