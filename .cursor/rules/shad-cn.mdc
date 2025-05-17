@@ -1,0 +1,6 @@
+---
+description: when adding new UI components
+globs: 
+alwaysApply: false
+---
+always use shadcn components when adding new UI components. when adding a component via the CLI, use the shadcn package, not the shadcn-ui package.

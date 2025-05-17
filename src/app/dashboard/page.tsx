@@ -101,26 +101,6 @@ export default async function DashboardPage({
 
   return (
     <div className="container mx-auto p-4 pb-20 space-y-6">
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-4">
-        <Link href="/workout/start">
-          <Card className="h-full hover:bg-accent transition-colors">
-            <CardContent className="p-4 flex flex-col items-center justify-center space-y-2">
-              <Dumbbell className="h-8 w-8" />
-              <span className="text-sm font-medium">Start Workout</span>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/workout/plans/new">
-          <Card className="h-full hover:bg-accent transition-colors">
-            <CardContent className="p-4 flex flex-col items-center justify-center space-y-2">
-              <PlusCircle className="h-8 w-8" />
-              <span className="text-sm font-medium">New Plan</span>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
-
       {/* Calendar Week View */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">

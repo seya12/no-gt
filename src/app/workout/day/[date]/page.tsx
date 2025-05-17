@@ -9,8 +9,7 @@ import {
   ChevronLeft,
   Calendar, 
   Dumbbell, 
-  CheckCircle2, 
-  PlusCircle 
+  PlusCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -191,95 +190,72 @@ export default async function DayPage({ params }: DayPageProps) {
       {/* Today's view: Start today's workout */}
       {isToday && (
         <div className="space-y-6">
-          {workouts.some(w => w.scheduled) && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-medium flex items-center">
-                <CalendarClock className="h-5 w-5 mr-2" />
-                Scheduled for Today
-              </h2>
-              <div className="space-y-4">
-                {workouts
-                  .filter(w => w.scheduled)
-                  .map((workout) => (
-                    <Card key={workout.id} className="border-accent">
-                      <CardHeader>
-                        <div className="flex justify-between items-center">
-                          <CardTitle>{workout.workoutPlan.name}</CardTitle>
-                          <Badge variant="outline" className="bg-accent/20">Scheduled</Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          {Array.from(new Set(workout.sets.map(set => set.exercise.name))).map((name) => (
-                            <Badge key={name} variant="secondary">
-                              {name}
-                            </Badge>
-                          ))}
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                        <Link href={`/workout/session/${workout.id}`} className="w-full">
-                          <Button className="w-full">
-                            <Dumbbell className="h-4 w-4 mr-2" />
-                            Start This Workout
-                          </Button>
-                        </Link>
-                      </CardFooter>
-                    </Card>
-                  ))}
-              </div>
-            </div>
-          )}
-
+          {/* Scheduled workouts section */}
           <div className="space-y-4">
-            <h2 className="text-lg font-medium flex items-center">
-              <Dumbbell className="h-5 w-5 mr-2" />
-              Start a New Workout
-            </h2>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Start</CardTitle>
-                <CardDescription>
-                  Start a workout without a plan or choose from your recent plans
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Link href="/workout/session/new" className="block w-full">
-                  <Button className="w-full">
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Start Empty Workout
-                  </Button>
-                </Link>
-                
-                {workoutPlans.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium">Or choose a plan:</div>
-                    <div className="space-y-2">
-                      {workoutPlans.slice(0, 3).map((plan) => (
-                        <Link
-                          key={plan.id}
-                          href={`/workout/session/new?planId=${plan.id}`}
-                          className="block w-full"
-                        >
-                          <Button variant="outline" className="w-full justify-start">
-                            <CheckCircle2 className="h-4 w-4 mr-2" />
-                            {plan.name}
-                          </Button>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-              <CardFooter>
-                <Link href="/workout/plans" className="block w-full">
-                  <Button variant="ghost" className="w-full">
-                    View All Plans
-                  </Button>
-                </Link>
-              </CardFooter>
-            </Card>
+            {workouts.some(w => w.scheduled) && (
+              <>
+                <h2 className="text-lg font-medium flex items-center">
+                  <CalendarClock className="h-5 w-5 mr-2" />
+                  Scheduled for Today
+                </h2>
+                <div className="space-y-4">
+                  {workouts
+                    .filter(w => w.scheduled)
+                    .map((workout) => (
+                      <Card key={workout.id} className="border-accent">
+                        <CardHeader>
+                          <div className="flex justify-between items-center">
+                            <CardTitle>{workout.workoutPlan.name}</CardTitle>
+                            <Badge variant="outline" className="bg-accent/20">Scheduled</Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            {Array.from(new Set(workout.sets.map(set => set.exercise.name))).map((name) => (
+                              <Badge key={name} variant="secondary">
+                                {name}
+                              </Badge>
+                            ))}
+                          </div>
+                        </CardContent>
+                        <CardFooter>
+                          <Link href={`/workout/session/${workout.id}`} className="w-full mb-2">
+                            <Button className="w-full">
+                              <Dumbbell className="h-4 w-4 mr-2" />
+                              Start This Workout
+                            </Button>
+                          </Link>
+                          <ScheduleActions workoutId={workout.id} />
+                        </CardFooter>
+                      </Card>
+                    ))}
+                </div>
+              </>
+            )}
+            {/* Always show the schedule button - Replaced with a list of plans to schedule */}
+            <div className="space-y-2 mt-4">
+              <h3 className="text-md font-medium">
+                {workouts.some(w => w.scheduled) ? 'Schedule Another Workout:' : 'Schedule a Workout:'}
+              </h3>
+              {workoutPlans.length > 0 ? (
+                workoutPlans.map((plan) => (
+                  <Link 
+                    key={plan.id} 
+                    href={`/workout/schedule?planId=${plan.id}&date=${date}`} 
+                    className="block w-full"
+                  >
+                    <Button variant="outline" className="w-full justify-start">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      {plan.name}
+                    </Button>
+                  </Link>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  You have no workout plans to schedule. Create a plan first.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -287,91 +263,69 @@ export default async function DayPage({ params }: DayPageProps) {
       {/* Future day view: Schedule a workout */}
       {isFuture && (
         <div className="space-y-6">
-          {workouts.some(w => w.scheduled) ? (
-            <div className="space-y-4">
-              <h2 className="text-lg font-medium flex items-center">
-                <CalendarClock className="h-5 w-5 mr-2" />
-                Scheduled Workouts
-              </h2>
-              <div className="space-y-4">
-                {workouts
-                  .filter(w => w.scheduled)
-                  .map((workout) => (
-                    <Card key={workout.id} className="border-accent">
-                      <CardHeader>
-                        <div className="flex justify-between items-center">
-                          <CardTitle>{workout.workoutPlan.name}</CardTitle>
-                          <Badge variant="outline" className="bg-accent/20">Scheduled</Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          {Array.from(new Set(workout.sets.map(set => set.exercise.name))).map((name) => (
-                            <Badge key={name} variant="secondary">
-                              {name}
-                            </Badge>
-                          ))}
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                        <ScheduleActions 
-                          workoutId={workout.id} 
-                          returnUrl={`/workout/day/${date}`} 
-                        />
-                      </CardFooter>
-                    </Card>
-                  ))}
-              </div>
+          {/* Scheduled workouts section */}
+          <div className="space-y-4">
+            {workouts.some(w => w.scheduled) && (
+              <>
+                <h2 className="text-lg font-medium flex items-center">
+                  <CalendarClock className="h-5 w-5 mr-2" />
+                  Scheduled Workouts
+                </h2>
+                <div className="space-y-4">
+                  {workouts
+                    .filter(w => w.scheduled)
+                    .map((workout) => (
+                      <Card key={workout.id} className="border-accent">
+                        <CardHeader>
+                          <div className="flex justify-between items-center">
+                            <CardTitle>{workout.workoutPlan.name}</CardTitle>
+                            <Badge variant="outline" className="bg-accent/20">Scheduled</Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            {Array.from(new Set(workout.sets.map(set => set.exercise.name))).map((name) => (
+                              <Badge key={name} variant="secondary">
+                                {name}
+                              </Badge>
+                            ))}
+                          </div>
+                        </CardContent>
+                        <CardFooter>
+                          <ScheduleActions 
+                            workoutId={workout.id} 
+                          />
+                        </CardFooter>
+                      </Card>
+                    ))}
+                </div>
+              </>
+            )}
+            {/* Always show the schedule button - Replaced with a list of plans to schedule */}
+            <div className="space-y-2 mt-4">
+              <h3 className="text-md font-medium">
+                {workouts.some(w => w.scheduled) ? 'Schedule Another Workout:' : 'Schedule a Workout:'}
+              </h3>
+              {workoutPlans.length > 0 ? (
+                workoutPlans.map((plan) => (
+                  <Link 
+                    key={plan.id} 
+                    href={`/workout/schedule?planId=${plan.id}&date=${date}`} 
+                    className="block w-full"
+                  >
+                    <Button variant="outline" className="w-full justify-start">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      {plan.name}
+                    </Button>
+                  </Link>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  You have no workout plans to schedule. Create a plan first.
+                </p>
+              )}
             </div>
-          ) : (
-            <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Schedule a Workout</CardTitle>
-                  <CardDescription>
-                    Plan your workout for {format(selectedDate, 'MMMM d, yyyy')}
-                  </CardDescription>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  {workoutPlans.length > 0 ? (
-                    <div className="space-y-2">
-                      <div className="text-sm font-medium">Choose a plan to schedule:</div>
-                      <div className="space-y-2">
-                        {workoutPlans.map((plan) => (
-                          <Link
-                            key={plan.id}
-                            href={`/workout/schedule?planId=${plan.id}&date=${date}`}
-                            className="block w-full"
-                          >
-                            <Button variant="outline" className="w-full justify-start">
-                              <Calendar className="h-4 w-4 mr-2" />
-                              {plan.name}
-                              <span className="text-xs text-muted-foreground ml-2">
-                                ({plan.exercises.length} exercises)
-                              </span>
-                            </Button>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-6">
-                      <p className="text-muted-foreground mb-4">
-                        You don&apos;t have any workout plans yet.
-                      </p>
-                      <Link href="/workout/plans/new">
-                        <Button>
-                          <PlusCircle className="h-4 w-4 mr-2" />
-                          Create New Plan
-                        </Button>
-                      </Link>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
+          </div>
         </div>
       )}
     </div>

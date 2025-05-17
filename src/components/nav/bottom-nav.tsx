@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Dumbbell, PlusCircle, User, ClipboardList } from "lucide-react"
+import { LayoutDashboard, Dumbbell, User, ClipboardList } from "lucide-react"
 
 export function BottomNav() {
   const pathname = usePathname()
@@ -28,9 +28,9 @@ export function BottomNav() {
       active: pathname.startsWith("/workout/plans")
     },
     {
-      name: "Start",
+      name: "Workouts",
       href: "/workout/start",
-      icon: PlusCircle,
+      icon: Dumbbell,
       active: pathname === "/workout/start"
     },
     {
