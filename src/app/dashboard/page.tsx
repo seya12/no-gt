@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardAction } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PlusCircle, Dumbbell, Calendar, ListChecks, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { getServerSession } from "next-auth"
@@ -24,18 +24,46 @@ async function getWorkoutsForRange(userId: string, startDate: Date, endDate: Dat
   });
 }
 
-async function getActivePlans(userId: string) {
+async function getTodaysWorkouts(userId: string, date: Date) {
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  return prisma.workoutSession.findMany({
+    where: { 
+      userId,
+      date: {
+        gte: startOfDay,
+        lte: endOfDay
+      },
+      scheduled: true
+    },
+    include: {
+      workoutPlan: true,
+    },
+  });
+}
+
+async function getLastIncompleteWorkout(userId: string) {
+  return prisma.workoutSession.findFirst({
+    where: { 
+      userId,
+      completedAt: null,
+      scheduled: false
+    },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      workoutPlan: true,
+    },
+  });
+}
+
+async function getRecentPlans(userId: string) {
   return prisma.workoutPlan.findMany({
     where: { userId },
     orderBy: { updatedAt: 'desc' },
-    take: 5,
-    include: {
-      exercises: {
-        include: {
-          exercise: true,
-        },
-      },
-    },
+    take: 3,
   });
 }
 
@@ -84,8 +112,10 @@ export default async function DashboardPage({
     };
   });
   
-  // Get all plans for more context
-  const activePlans = await getActivePlans(session.user.id);
+  // Get data for Quick Start section
+  const todaysWorkouts = await getTodaysWorkouts(session.user.id, today);
+  const lastIncompleteWorkout = await getLastIncompleteWorkout(session.user.id);
+  const recentPlans = await getRecentPlans(session.user.id);
   
   // Navigation links - different offsets for mobile vs desktop
   const prevWeek = subDays(selectedDate, 7);  // Desktop: 7 days
@@ -247,37 +277,79 @@ export default async function DashboardPage({
         </CardContent>
       </Card>
 
-      {/* Active Plans and Quick Access */}
+      {/* Quick Start and Quick Access */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Active Plans */}
+        {/* Quick Start */}
         <Card>
           <CardHeader>
-            <CardTitle>Active Plans</CardTitle>
-            <CardAction>
-              <Link href="/workout/plans">
-                <Button variant="ghost" size="sm">View All</Button>
-              </Link>
-            </CardAction>
+            <CardTitle>Quick Start</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {activePlans.length > 0 ? (
-                activePlans.map((plan) => (
-                  <div key={plan.id} className="flex justify-between items-center p-2.5 rounded-md bg-accent/30">
+              {/* Continue Last Workout */}
+              {lastIncompleteWorkout && (
+                <div className="p-3 rounded-md bg-primary/10 border border-primary/20">
+                  <div className="flex justify-between items-center">
                     <div>
-                      <p className="font-medium">{plan.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {plan.exercises.length} exercises
+                      <p className="font-medium text-primary">Continue Workout</p>
+                      <p className="text-sm text-muted-foreground">
+                        {lastIncompleteWorkout.workoutPlan.name}
                       </p>
                     </div>
-                    <Link href={`/workout/session/new?planId=${plan.id}`}>
-                      <Button size="sm" variant="outline">Start</Button>
+                    <Link href={`/workout/session/${lastIncompleteWorkout.id}`}>
+                      <Button size="sm" className="bg-primary">Continue</Button>
                     </Link>
                   </div>
-                ))
-              ) : (
+                </div>
+              )}
+
+              {/* Today's Scheduled Workouts */}
+              {todaysWorkouts.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Today&apos;s Scheduled</p>
+                  {todaysWorkouts.map((workout) => (
+                    <div key={workout.id} className="flex justify-between items-center p-2.5 rounded-md bg-accent/30">
+                      <div>
+                        <p className="font-medium">{workout.workoutPlan.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Scheduled for today
+                        </p>
+                      </div>
+                      <Link href={`/workout/session/${workout.id}`}>
+                        <Button size="sm" variant="outline">Start</Button>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Quick Start Any Plan */}
+              {recentPlans.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Quick Start</p>
+                  {recentPlans.map((plan) => (
+                    <div key={plan.id} className="flex justify-between items-center p-2.5 rounded-md bg-accent/20">
+                      <div>
+                        <p className="font-medium">{plan.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Start immediately
+                        </p>
+                      </div>
+                      <Link href={`/workout/session/new?planId=${plan.id}`}>
+                        <Button size="sm" variant="outline">Start</Button>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Fallback if no workouts */}
+              {!lastIncompleteWorkout && todaysWorkouts.length === 0 && recentPlans.length === 0 && (
                 <div className="text-sm text-muted-foreground text-center py-4">
-                  No active plans
+                  <p>No workouts available</p>
+                  <Link href="/workout/plans" className="text-primary hover:underline">
+                    Create a workout plan
+                  </Link>
                 </div>
               )}
             </div>
