@@ -104,6 +104,7 @@ model WorkoutSession {
   date        DateTime
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  startedAt   DateTime?
   completedAt DateTime?
   scheduled   Boolean  @default(false)
   userId      String

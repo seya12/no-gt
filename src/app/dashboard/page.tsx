@@ -49,12 +49,18 @@ async function getLastIncompleteWorkout(userId: string) {
   return prisma.workoutSession.findFirst({
     where: { 
       userId,
+      startedAt: { not: null },
       completedAt: null,
       scheduled: false
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { startedAt: 'desc' },
     include: {
       workoutPlan: true,
+      sets: {
+        include: {
+          exercise: true,
+        },
+      },
     },
   });
 }

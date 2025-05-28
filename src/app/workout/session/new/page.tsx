@@ -50,6 +50,7 @@ export default async function NewWorkoutSessionPage({
   const workoutSession = await prisma.workoutSession.create({
     data: {
       date: new Date(),
+      startedAt: new Date(), // Mark as started immediately
       userId: session.user.id,
       workoutPlanId: workoutPlan.id,
       // Create sets for each exercise based on default values

@@ -13,6 +13,11 @@ export interface CompleteWorkoutSessionResponse {
   // completedSession?: any; // Optional: return the completed session data if needed
 }
 
+export interface StartWorkoutSessionResponse {
+  success: boolean;
+  error?: string;
+}
+
 export async function completeWorkoutSessionAction(
   sessionId: string
 ): Promise<CompleteWorkoutSessionResponse> {
@@ -81,5 +86,47 @@ export async function completeWorkoutSessionAction(
   } catch (error) {
     console.error(`Error completing workout session ${sessionId}:`, error);
     return { success: false, error: "Failed to complete workout session. Please try again." };
+  }
+}
+
+export async function startWorkoutSessionAction(sessionId: string): Promise<StartWorkoutSessionResponse> {
+  const session = await getServerSession(authConfig);
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    // Verify the session belongs to the user and is scheduled
+    const workoutSession = await prisma.workoutSession.findFirst({
+      where: {
+        id: sessionId,
+        userId: session.user.id,
+        scheduled: true,
+        startedAt: null,
+      },
+    });
+
+    if (!workoutSession) {
+      return { success: false, error: "Workout session not found or already started" };
+    }
+
+    // Mark as started
+    await prisma.workoutSession.update({
+      where: { id: sessionId },
+      data: { 
+        startedAt: new Date(),
+        scheduled: false // Convert from scheduled to active workout
+      }
+    });
+
+    // Revalidate relevant paths
+    revalidatePath("/dashboard");
+    revalidatePath(`/workout/session/${sessionId}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to start workout session:", error);
+    return { success: false, error: "Failed to start workout session" };
   }
 } 

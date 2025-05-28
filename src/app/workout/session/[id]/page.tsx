@@ -13,6 +13,37 @@ interface PageProps {
   }>
 }
 
+async function getWorkoutSessionWithSets(sessionId: string, userId: string) {
+  return prisma.workoutSession.findUnique({
+    where: {
+      id: sessionId,
+      userId: userId,
+    },
+    include: {
+      workoutPlan: {
+        include: {
+          exercises: {
+            include: {
+              exercise: true,
+            },
+            orderBy: {
+              id: "asc",
+            },
+          },
+        },
+      },
+      sets: {
+        include: {
+          exercise: true,
+        },
+        orderBy: {
+          id: "asc",
+        },
+      },
+    },
+  })
+}
+
 export default async function WorkoutSessionPage({
   params,
 }: PageProps) {
@@ -24,29 +55,71 @@ export default async function WorkoutSessionPage({
   }
   
   // Fetch the workout session with all related data
-  const workoutSession = await prisma.workoutSession.findUnique({
-    where: {
-      id: id,
-      userId: session.user.id,
-    },
-    include: {
-      workoutPlan: true,
-      sets: {
-        include: {
-          exercise: true,
-        },
-        orderBy: {
-          id: "asc",
-        },
-      },
-    },
-  })
+  let workoutSession = await getWorkoutSessionWithSets(id, session.user.id)
   
   if (!workoutSession) {
     notFound()
   }
+
+  // If this is a scheduled workout that hasn't been started yet, mark it as started and create sets
+  if (workoutSession.scheduled && !workoutSession.startedAt) {
+    // Create sets if they don't exist
+    if (workoutSession.sets.length === 0) {
+      const setsToCreate = workoutSession.workoutPlan.exercises.flatMap(exercise => 
+        Array.from({ length: exercise.defaultSets }, () => ({
+          exerciseId: exercise.exerciseId,
+          targetReps: exercise.defaultReps,
+          weight: exercise.startingWeight || 0,
+          completed: false,
+          workoutSessionId: workoutSession!.id,
+        }))
+      )
+
+      await prisma.set.createMany({
+        data: setsToCreate,
+      })
+    }
+
+    // Mark as started and no longer scheduled
+    await prisma.workoutSession.update({
+      where: { id: workoutSession.id },
+      data: { 
+        startedAt: new Date(),
+        scheduled: false,
+      },
+    })
+    
+    // Refetch the updated session with sets
+    const updatedSession = await getWorkoutSessionWithSets(id, session.user.id)
+    
+    if (!updatedSession) {
+      notFound()
+    }
+    
+    workoutSession = updatedSession
+  }
   
   // Group sets by exercise
+  type SetWithExercise = {
+    id: string;
+    exerciseId: string;
+    workoutSessionId: string;
+    targetReps: number;
+    actualReps: number | null;
+    weight: number;
+    notes: string | null;
+    completed: boolean;
+    nextWeightAdjustment: string | null;
+    exercise: {
+      id: string;
+      name: string;
+      description: string | null;
+      createdAt: Date;
+      updatedAt: Date;
+      userId: string;
+    };
+  };
+  
   const exerciseSets = workoutSession.sets.reduce((acc, set) => {
     const exerciseId = set.exerciseId
     
@@ -60,7 +133,7 @@ export default async function WorkoutSessionPage({
     
     acc[exerciseId].sets.push(set)
     return acc
-  }, {} as Record<string, { exerciseId: string; exerciseName: string; sets: typeof workoutSession.sets }> )
+  }, {} as Record<string, { exerciseId: string; exerciseName: string; sets: SetWithExercise[] }> )
   
   // Convert to array for rendering
   const groupedSets = Object.values(exerciseSets)
