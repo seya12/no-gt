@@ -50,7 +50,7 @@ export function WorkoutSessionTracker({
   const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [tempReps, setTempReps] = useState<number | null>(null)
   const [tempWeight, setTempWeight] = useState<number | null>(0)
-  const [tempRestDuration, setTempRestDuration] = useState(90)
+  const tempRestDuration = 90
   const [minimizedExercises, setMinimizedExercises] = useState<Record<string, boolean>>({})
   const [progressionAmount, setProgressionAmount] = useState(2.5)
   const [shouldProgress, setShouldProgress] = useState(true)
@@ -82,10 +82,6 @@ export function WorkoutSessionTracker({
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
   
-  const parseRestDuration = (minutes: number, seconds: number) => {
-    return Math.max(0, minutes * 60 + seconds)
-  }
-  
   const startRestTimer = (duration: number = tempRestDuration) => {
     setRestTimer(duration)
     setIsTimerRunning(true)
@@ -93,6 +89,10 @@ export function WorkoutSessionTracker({
   
   const toggleTimer = () => {
     setIsTimerRunning(!isTimerRunning)
+  }
+  
+  const addTimeToTimer = (seconds: number) => {
+    setRestTimer(prev => prev + seconds)
   }
   
   const updateSet = async (setId: string, updates: Partial<Set>) => {
@@ -298,6 +298,15 @@ export function WorkoutSessionTracker({
         isCompletingWorkout={isCompletingWorkout}
       />
 
+      <RestTimerDisplay 
+        isVisible={isTimerRunning}
+        formattedTime={formatTime(restTimer)}
+        isTimerRunning={isTimerRunning}
+        onToggleTimer={toggleTimer}
+        onStopTimer={() => { setIsTimerRunning(false); setRestTimer(0); }}
+        onAddTime={addTimeToTimer}
+      />
+
       {exercises.map((exerciseGroup) => (
         <ExerciseTrackerCard
           key={exerciseGroup.exerciseId}
@@ -310,18 +319,6 @@ export function WorkoutSessionTracker({
           activeExerciseId={activeExerciseId}
         />
       ))}
-
-      <RestTimerDisplay 
-        isVisible={isTimerRunning}
-        formattedTime={formatTime(restTimer)}
-        isTimerRunning={isTimerRunning}
-        onToggleTimer={toggleTimer}
-        onStopTimer={() => { setIsTimerRunning(false); setRestTimer(0); }}
-        tempRestDurationMinutes={Math.floor(tempRestDuration / 60)}
-        tempRestDurationSeconds={tempRestDuration % 60}
-        onRestDurationMinutesChange={(mins) => setTempRestDuration(parseRestDuration(mins, tempRestDuration % 60))}
-        onRestDurationSecondsChange={(secs) => setTempRestDuration(parseRestDuration(Math.floor(tempRestDuration / 60), secs))}
-      />
 
       <SetCompletionDialog
         open={showCompletionDialog}
