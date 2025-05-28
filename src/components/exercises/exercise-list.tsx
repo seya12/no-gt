@@ -1,16 +1,9 @@
 "use client"
 
 import { Exercise } from "@prisma/client"
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Edit, Trash2, Loader2 } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Edit, Trash2, Loader2, FileText, Target } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import {
@@ -62,58 +55,91 @@ export function ExerciseList({ exercises }: ExerciseListProps) {
 
   return (
     <>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead className="hidden md:table-cell">Description</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {exercises.map((exercise) => (
-              <TableRow key={exercise.id}>
-                <TableCell className="font-medium">{exercise.name}</TableCell>
-                <TableCell className="hidden md:table-cell">
-                  {exercise.description || "No description"}
-                </TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {exercises.map((exercise) => (
+          <Card key={exercise.id} className="group hover:shadow-lg transition-all duration-200 border-border hover:border-primary/30">
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {/* Header */}
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                      <Target className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-lg truncate group-hover:text-primary transition-colors">
+                        {exercise.name}
+                      </h3>
+                    </div>
+                  </div>
+                  
+                  {/* Actions */}
+                  <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Link href={`/exercises/${exercise.id}/edit`}>
-                      <Button size="icon" variant="ghost" title="Edit exercise">
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-primary/10">
                         <Edit className="h-4 w-4" />
                       </Button>
                     </Link>
                     <Button 
-                      size="icon" 
+                      size="sm" 
                       variant="ghost" 
-                      title="Delete exercise"
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                       onClick={() => {
                         setExerciseToDelete(exercise)
                         setOpen(true)
                       }}
                       disabled={isDeleting && exerciseToDelete?.id === exercise.id}
-                      className="text-destructive hover:text-destructive/90"
                     >
                       {isDeleting && exerciseToDelete?.id === exercise.id 
                         ? <Loader2 className="h-4 w-4 animate-spin" /> 
                         : <Trash2 className="h-4 w-4" />}
                     </Button>
                   </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                </div>
+
+                {/* Description */}
+                <div className="space-y-2">
+                  {exercise.description ? (
+                    <div className="flex items-start space-x-2">
+                      <FileText className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {exercise.description}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2 text-muted-foreground/60">
+                      <FileText className="h-4 w-4" />
+                      <span className="text-sm italic">No description added</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="pt-2 border-t border-border/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">
+                      Created {new Date(exercise.createdAt).toLocaleDateString()}
+                    </span>
+                    <Link href={`/exercises/${exercise.id}/edit`}>
+                      <Button size="sm" variant="outline" className="h-7 text-xs hover:bg-primary hover:text-primary-foreground">
+                        Edit
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Exercise</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the exercise &quot;{exerciseToDelete?.name}&quot;
+              Are you sure you want to delete &quot;{exerciseToDelete?.name}&quot;? 
+              This action cannot be undone and will remove the exercise from all workout plans.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -126,7 +152,14 @@ export function ExerciseList({ exercises }: ExerciseListProps) {
               disabled={isDeleting}
               className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Exercise"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

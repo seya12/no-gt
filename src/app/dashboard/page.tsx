@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { PlusCircle, Dumbbell, Calendar, ListChecks, ChevronLeft, ChevronRight } from "lucide-react"
+import { PlusCircle, Dumbbell, Calendar, ListChecks, ChevronLeft, ChevronRight, Play, Clock, Zap, Target } from "lucide-react"
 import Link from "next/link"
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
@@ -136,54 +136,138 @@ export default async function DashboardPage({
   const todayLink = `/dashboard?date=${format(today, 'yyyy-MM-dd')}`;
 
   return (
-    <div className="container mx-auto p-4 pb-20 space-y-6">
+    <div className="container mx-auto p-4 pb-20 space-y-8">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/20 p-6 md:p-8">
+        <div className="relative z-10">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">
+            Welcome back, {session.user.name?.split(' ')[0] || 'Athlete'}! 💪
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Ready to crush your fitness goals today?
+          </p>
+        </div>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl"></div>
+      </div>
+
+      {/* Quick Actions - Priority Section */}
+      {(lastIncompleteWorkout || todaysWorkouts.length > 0) && (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold flex items-center">
+            <Zap className="h-6 w-6 mr-2 text-primary" />
+            Ready to Go
+          </h2>
+          
+          <div className="grid gap-4">
+            {/* Continue Last Workout - Hero Treatment */}
+            {lastIncompleteWorkout && (
+              <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-primary/10 shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="p-3 rounded-full bg-primary/20">
+                        <Play className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-semibold text-primary">Continue Workout</h3>
+                        <p className="text-lg font-medium">{lastIncompleteWorkout.workoutPlan.name}</p>
+                        <p className="text-sm text-muted-foreground">Pick up where you left off</p>
+                      </div>
+                    </div>
+                    <Link href={`/workout/session/${lastIncompleteWorkout.id}`}>
+                      <Button size="lg" className="bg-primary hover:bg-primary/90 shadow-lg">
+                        <Play className="h-4 w-4 mr-2" />
+                        Continue
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Today's Scheduled Workouts */}
+            {todaysWorkouts.length > 0 && (
+              <div className="grid gap-3">
+                <h3 className="text-lg font-medium flex items-center text-muted-foreground">
+                  <Clock className="h-5 w-5 mr-2" />
+                  Today&apos;s Schedule
+                </h3>
+                {todaysWorkouts.map((workout) => (
+                  <Card key={workout.id} className="border-accent/50 hover:border-primary/30 transition-colors">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 rounded-lg bg-accent/30">
+                            <Target className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-semibold">{workout.workoutPlan.name}</p>
+                            <p className="text-sm text-muted-foreground">Scheduled for today</p>
+                          </div>
+                        </div>
+                        <Link href={`/workout/session/${workout.id}`}>
+                          <Button variant="outline" className="hover:bg-primary hover:text-primary-foreground">
+                            Start
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Calendar Week View */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-xl font-medium flex items-center">
-            <Calendar className="h-5 w-5 mr-2" />
-            Workout Calendar
+      <Card className="shadow-lg">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-2xl font-semibold flex items-center">
+            <Calendar className="h-6 w-6 mr-3 text-primary" />
+            This Week
           </CardTitle>
           <div className="flex items-center space-x-2">
             {/* Different navigation links for mobile vs desktop */}
             <Link href={prev3DaysLink} className="sm:hidden">
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" className="hover:bg-primary hover:text-primary-foreground">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
             </Link>
             <Link href={prevWeekLink} className="hidden sm:flex">
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" className="hover:bg-primary hover:text-primary-foreground">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
             </Link>
             <Link href={todayLink}>
-              <Button variant="outline" size="sm">Today</Button>
+              <Button variant="outline" size="sm" className="hover:bg-primary hover:text-primary-foreground">Today</Button>
             </Link>
             <Link href={next3DaysLink} className="sm:hidden">
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" className="hover:bg-primary hover:text-primary-foreground">
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
             <Link href={nextWeekLink} className="hidden sm:flex">
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" className="hover:bg-primary hover:text-primary-foreground">
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
             <Link href="/workout/calendar">
-              <Button variant="ghost" size="sm" className="hidden sm:flex">Full Calendar</Button>
+              <Button variant="ghost" size="sm" className="hidden sm:flex hover:bg-primary/10">Full Calendar</Button>
             </Link>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           {/* Mobile view (3 days) */}
           <div className="sm:hidden">
-            <div className="grid grid-cols-3 gap-1">
+            <div className="grid grid-cols-3 gap-2">
               {/* Day headers for mobile */}
               {workoutsByDay.slice(2, 5).map((day) => (
-                <div key={`header-mobile-${day.date.toISOString()}`} className="p-2 text-center">
-                  <div className="text-sm font-semibold">{format(day.date, 'EEE')}</div>
-                  <div className={`text-lg font-bold rounded-full w-8 h-8 flex items-center justify-center mx-auto
-                    ${day.isToday ? 'bg-primary text-primary-foreground' : ''}`}>
+                <div key={`header-mobile-${day.date.toISOString()}`} className="p-3 text-center">
+                  <div className="text-sm font-semibold text-muted-foreground">{format(day.date, 'EEE')}</div>
+                  <div className={`text-xl font-bold rounded-full w-10 h-10 flex items-center justify-center mx-auto mt-1 transition-colors
+                    ${day.isToday ? 'bg-primary text-primary-foreground shadow-lg' : 'hover:bg-accent'}`}>
                     {format(day.date, 'd')}
                   </div>
                 </div>
@@ -194,26 +278,26 @@ export default async function DashboardPage({
                 <Link 
                   key={`cell-mobile-${day.date.toISOString()}`}
                   href={`/workout/day/${format(day.date, 'yyyy-MM-dd')}`}
-                  className={`block p-2 border rounded-md min-h-[120px] overflow-y-auto ${
-                    day.isToday ? 'bg-accent/20 border-primary' : ''
+                  className={`block p-3 border-2 rounded-xl min-h-[140px] overflow-y-auto transition-all hover:shadow-md ${
+                    day.isToday ? 'bg-primary/5 border-primary shadow-lg' : 'border-border hover:border-primary/30'
                   }`}
                 >
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     {day.workouts.length > 0 ? (
                       day.workouts.map((workout) => (
                         <div 
                           key={workout.id}
-                          className={`text-xs p-2 rounded truncate hover:bg-accent/50 transition-colors ${
-                            workout.scheduled ? 'bg-accent/30' : 'bg-primary/20'
+                          className={`text-xs p-2.5 rounded-lg truncate transition-colors ${
+                            workout.scheduled ? 'bg-accent/40 hover:bg-accent/60' : 'bg-primary/20 hover:bg-primary/30'
                           }`}
                         >
                           {workout.workoutPlan.name}
                         </div>
                       ))
                     ) : (
-                      <div className="flex h-full min-h-[40px] items-center justify-center">
-                        <Button variant="ghost" size="sm" className="h-8 text-xs">
-                          <PlusCircle className="h-3 w-3 mr-1" />
+                      <div className="flex h-full min-h-[60px] items-center justify-center">
+                        <Button variant="ghost" size="sm" className="h-auto py-2 text-xs hover:bg-primary/10">
+                          <PlusCircle className="h-4 w-4 mr-1" />
                           {day.isToday ? "Start" : "Add"}
                         </Button>
                       </div>
@@ -222,9 +306,9 @@ export default async function DashboardPage({
                 </Link>
               ))}
             </div>
-            <div className="flex justify-center mt-2">
+            <div className="flex justify-center mt-4">
               <Link href="/workout/calendar">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm" className="w-full hover:bg-primary hover:text-primary-foreground">
                   <Calendar className="h-4 w-4 mr-2" />
                   View Full Calendar
                 </Button>
@@ -234,13 +318,13 @@ export default async function DashboardPage({
 
           {/* Desktop view (7 days) */}
           <div className="hidden sm:block">
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-2">
               {/* Day headers for desktop */}
               {workoutsByDay.map((day) => (
-                <div key={`header-desktop-${day.date.toISOString()}`} className="p-2 text-center">
-                  <div className="text-sm font-semibold">{format(day.date, 'EEE')}</div>
-                  <div className={`text-lg font-bold rounded-full w-8 h-8 flex items-center justify-center mx-auto
-                    ${day.isToday ? 'bg-primary text-primary-foreground' : ''}`}>
+                <div key={`header-desktop-${day.date.toISOString()}`} className="p-3 text-center">
+                  <div className="text-sm font-semibold text-muted-foreground">{format(day.date, 'EEE')}</div>
+                  <div className={`text-xl font-bold rounded-full w-10 h-10 flex items-center justify-center mx-auto mt-1 transition-colors
+                    ${day.isToday ? 'bg-primary text-primary-foreground shadow-lg' : 'hover:bg-accent'}`}>
                     {format(day.date, 'd')}
                   </div>
                 </div>
@@ -251,26 +335,26 @@ export default async function DashboardPage({
                 <Link 
                   key={`cell-desktop-${day.date.toISOString()}`}
                   href={`/workout/day/${format(day.date, 'yyyy-MM-dd')}`}
-                  className={`block p-2 border rounded-md min-h-[100px] overflow-y-auto ${
-                    day.isToday ? 'bg-accent/20 border-primary' : ''
+                  className={`block p-3 border-2 rounded-xl min-h-[120px] overflow-y-auto transition-all hover:shadow-md ${
+                    day.isToday ? 'bg-primary/5 border-primary shadow-lg' : 'border-border hover:border-primary/30'
                   }`}
                 >
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     {day.workouts.length > 0 ? (
                       day.workouts.map((workout) => (
                         <div 
                           key={workout.id}
-                          className={`text-xs p-1.5 rounded truncate hover:bg-accent/50 transition-colors ${
-                            workout.scheduled ? 'bg-accent/30' : 'bg-primary/20'
+                          className={`text-xs p-2 rounded-lg truncate transition-colors ${
+                            workout.scheduled ? 'bg-accent/40 hover:bg-accent/60' : 'bg-primary/20 hover:bg-primary/30'
                           }`}
                         >
                           {workout.workoutPlan.name}
                         </div>
                       ))
                     ) : (
-                      <div className="flex h-full min-h-[40px] items-center justify-center">
-                        <Button variant="ghost" size="sm" className="h-6 text-xs">
-                          <PlusCircle className="h-3 w-3 mr-1" />
+                      <div className="flex h-full min-h-[50px] items-center justify-center">
+                        <Button variant="ghost" size="sm" className="h-auto py-2 text-xs hover:bg-primary/10">
+                          <PlusCircle className="h-4 w-4 mr-1" />
                           {day.isToday ? "Start" : "Add"}
                         </Button>
                       </div>
@@ -283,114 +367,93 @@ export default async function DashboardPage({
         </CardContent>
       </Card>
 
-      {/* Quick Start and Quick Access */}
+      {/* Bottom Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Quick Start */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Start</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {/* Continue Last Workout */}
-              {lastIncompleteWorkout && (
-                <div className="p-3 rounded-md bg-primary/10 border border-primary/20">
-                  <div className="flex justify-between items-center">
+        {/* Quick Start Plans */}
+        {recentPlans.length > 0 && (
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Dumbbell className="h-5 w-5 mr-2 text-primary" />
+                Quick Start
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {recentPlans.map((plan) => (
+                  <div key={plan.id} className="flex items-center justify-between p-3 rounded-lg bg-accent/20 hover:bg-accent/30 transition-colors">
                     <div>
-                      <p className="font-medium text-primary">Continue Workout</p>
-                      <p className="text-sm text-muted-foreground">
-                        {lastIncompleteWorkout.workoutPlan.name}
-                      </p>
+                      <p className="font-medium">{plan.name}</p>
+                      <p className="text-sm text-muted-foreground">Start immediately</p>
                     </div>
-                    <Link href={`/workout/session/${lastIncompleteWorkout.id}`}>
-                      <Button size="sm" className="bg-primary">Continue</Button>
+                    <Link href={`/workout/session/new?planId=${plan.id}`}>
+                      <Button size="sm" variant="outline" className="hover:bg-primary hover:text-primary-foreground">
+                        <Play className="h-3 w-3 mr-1" />
+                        Start
+                      </Button>
                     </Link>
                   </div>
-                </div>
-              )}
-
-              {/* Today's Scheduled Workouts */}
-              {todaysWorkouts.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Today&apos;s Scheduled</p>
-                  {todaysWorkouts.map((workout) => (
-                    <div key={workout.id} className="flex justify-between items-center p-2.5 rounded-md bg-accent/30">
-                      <div>
-                        <p className="font-medium">{workout.workoutPlan.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Scheduled for today
-                        </p>
-                      </div>
-                      <Link href={`/workout/session/${workout.id}`}>
-                        <Button size="sm" variant="outline">Start</Button>
-                      </Link>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Quick Start Any Plan */}
-              {recentPlans.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Quick Start</p>
-                  {recentPlans.map((plan) => (
-                    <div key={plan.id} className="flex justify-between items-center p-2.5 rounded-md bg-accent/20">
-                      <div>
-                        <p className="font-medium">{plan.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Start immediately
-                        </p>
-                      </div>
-                      <Link href={`/workout/session/new?planId=${plan.id}`}>
-                        <Button size="sm" variant="outline">Start</Button>
-                      </Link>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Fallback if no workouts */}
-              {!lastIncompleteWorkout && todaysWorkouts.length === 0 && recentPlans.length === 0 && (
-                <div className="text-sm text-muted-foreground text-center py-4">
-                  <p>No workouts available</p>
-                  <Link href="/workout/plans" className="text-primary hover:underline">
-                    Create a workout plan
-                  </Link>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Quick Access */}
-        <Card>
+        <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Quick Access</CardTitle>
+            <CardTitle className="flex items-center">
+              <Target className="h-5 w-5 mr-2 text-primary" />
+              Quick Access
+            </CardTitle>
           </CardHeader>
-          <CardContent className="px-4 sm:px-6">
+          <CardContent>
             <div className="grid grid-cols-1 gap-3">
               <Link href="/exercises">
-                <Button variant="outline" className="w-full justify-start px-3 sm:px-4">
-                  <ListChecks className="mr-2 h-4 w-4" />
-                  Exercises
+                <Button variant="outline" className="w-full justify-start h-12 hover:bg-primary hover:text-primary-foreground transition-colors">
+                  <ListChecks className="mr-3 h-5 w-5" />
+                  <span className="font-medium">Exercises</span>
                 </Button>
               </Link>
               <Link href="/workout/history">
-                <Button variant="outline" className="w-full justify-start px-3 sm:px-4">
-                  <Dumbbell className="mr-2 h-4 w-4" />
-                  Workout History
+                <Button variant="outline" className="w-full justify-start h-12 hover:bg-primary hover:text-primary-foreground transition-colors">
+                  <Dumbbell className="mr-3 h-5 w-5" />
+                  <span className="font-medium">Workout History</span>
                 </Button>
               </Link>
               <Link href="/workout/calendar">
-                <Button variant="outline" className="w-full justify-start px-3 sm:px-4">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Full Calendar
+                <Button variant="outline" className="w-full justify-start h-12 hover:bg-primary hover:text-primary-foreground transition-colors">
+                  <Calendar className="mr-3 h-5 w-5" />
+                  <span className="font-medium">Full Calendar</span>
                 </Button>
               </Link>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Empty State */}
+      {!lastIncompleteWorkout && todaysWorkouts.length === 0 && recentPlans.length === 0 && (
+        <Card className="shadow-lg">
+          <CardContent className="text-center py-12">
+            <div className="max-w-md mx-auto">
+              <div className="p-4 rounded-full bg-primary/10 w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                <Dumbbell className="h-10 w-10 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Ready to Start Your Fitness Journey?</h3>
+              <p className="text-muted-foreground mb-6">
+                Create your first workout plan and start building healthy habits today.
+              </p>
+              <Link href="/workout/plans">
+                <Button size="lg" className="bg-primary hover:bg-primary/90">
+                  <PlusCircle className="h-5 w-5 mr-2" />
+                  Create Workout Plan
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 } 

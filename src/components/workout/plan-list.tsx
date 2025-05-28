@@ -4,7 +4,7 @@ import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Edit, Trash2, Play, Dumbbell, Loader2 } from "lucide-react"
+import { Edit, Trash2, Play, Dumbbell, Loader2, Target, Calendar } from "lucide-react"
 import {
   Card,
   CardContent,
@@ -80,68 +80,121 @@ export function WorkoutPlanList({ workoutPlans }: WorkoutPlanListProps) {
 
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {workoutPlans.map((plan) => (
-          <Card key={plan.id} className="flex flex-col">
-            <CardHeader>
-              <CardTitle>{plan.name}</CardTitle>
-              <CardDescription>
-                {plan.exercises.length} exercises
-              </CardDescription>
+          <Card key={plan.id} className="group hover:shadow-xl transition-all duration-300 border-border hover:border-primary/30 bg-gradient-to-br from-background to-accent/5">
+            <CardHeader className="pb-4">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center space-x-3 flex-1 min-w-0">
+                  <div className="p-2.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                    <Target className="h-6 w-6 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-xl truncate group-hover:text-primary transition-colors">
+                      {plan.name}
+                    </CardTitle>
+                    <CardDescription className="flex items-center mt-1">
+                      <Dumbbell className="h-4 w-4 mr-1" />
+                      {plan.exercises.length} exercise{plan.exercises.length !== 1 ? 's' : ''}
+                    </CardDescription>
+                  </div>
+                </div>
+                
+                {/* Quick Actions */}
+                <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Link href={`/workout/plans/${plan.id}/edit`}>
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-primary/10">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => {
+                      setPlanToDelete(plan)
+                      setOpen(true)
+                    }}
+                    disabled={isPending}
+                  >
+                    {isPending && planToDelete?.id === plan.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="flex-grow">
-              <div className="space-y-2">
-                {plan.exercises.slice(0, 3).map((planExercise) => (
-                  <div key={planExercise.id} className="flex items-center">
-                    <Dumbbell className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{planExercise.exercise.name}</span>
-                    <div className="ml-auto flex space-x-1">
-                      <Badge variant="outline" className="text-xs">
-                        {planExercise.defaultSets}×{planExercise.defaultReps}
+            
+            <CardContent className="flex-grow pb-4">
+              {plan.exercises.length > 0 ? (
+                <div className="space-y-3">
+                  {plan.exercises.slice(0, 4).map((planExercise) => (
+                    <div key={planExercise.id} className="flex items-center justify-between p-2.5 rounded-lg bg-accent/20 hover:bg-accent/30 transition-colors">
+                      <div className="flex items-center space-x-2 flex-1 min-w-0">
+                        <div className="p-1.5 rounded bg-primary/10">
+                          <Dumbbell className="h-3.5 w-3.5 text-primary" />
+                        </div>
+                        <span className="text-sm font-medium truncate">{planExercise.exercise.name}</span>
+                      </div>
+                      <div className="flex space-x-1 flex-shrink-0">
+                        <Badge variant="outline" className="text-xs bg-background/50">
+                          {planExercise.defaultSets}×{planExercise.defaultReps}
+                        </Badge>
+                        {planExercise.startingWeight && (
+                          <Badge variant="outline" className="text-xs bg-background/50">
+                            {planExercise.startingWeight}kg
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {plan.exercises.length > 4 && (
+                    <div className="text-center">
+                      <Badge variant="secondary" className="text-xs">
+                        +{plan.exercises.length - 4} more exercises
                       </Badge>
                     </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <div className="p-3 rounded-full bg-muted/50 w-12 h-12 mx-auto mb-2 flex items-center justify-center">
+                    <Target className="h-6 w-6 text-muted-foreground" />
                   </div>
-                ))}
-                {plan.exercises.length > 3 && (
-                  <p className="text-sm text-muted-foreground">
-                    +{plan.exercises.length - 3} more exercises
-                  </p>
-                )}
-                {plan.exercises.length === 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    No exercises added yet
-                  </p>
-                )}
-              </div>
+                  <p className="text-sm text-muted-foreground">No exercises added yet</p>
+                  <Link href={`/workout/plans/${plan.id}/edit`}>
+                    <Button size="sm" variant="outline" className="mt-2 text-xs">
+                      Add Exercises
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </CardContent>
-            <CardFooter className="flex justify-between border-t p-4">
+            
+            <CardFooter className="flex items-center justify-between border-t bg-accent/5 p-4">
+              <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                <div className="flex items-center space-x-1">
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span>Created {new Date(plan.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+              
               <div className="flex space-x-2">
                 <Link href={`/workout/plans/${plan.id}/edit`}>
-                  <Button size="sm" variant="ghost">
-                    <Edit className="mr-1 h-4 w-4" />
+                  <Button size="sm" variant="outline" className="hover:bg-primary hover:text-primary-foreground">
+                    <Edit className="mr-1 h-3.5 w-3.5" />
                     Edit
                   </Button>
                 </Link>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-destructive"
-                  onClick={() => {
-                    setPlanToDelete(plan)
-                    setOpen(true)
-                  }}
-                  disabled={isPending}
-                >
-                  <Trash2 className="mr-1 h-4 w-4" />
-                  Delete
-                </Button>
+                <Link href={`/workout/session/new?planId=${plan.id}`}>
+                  <Button size="sm" className="bg-primary hover:bg-primary/90 shadow-sm">
+                    <Play className="mr-1 h-3.5 w-3.5" />
+                    Start
+                  </Button>
+                </Link>
               </div>
-              <Link href={`/workout/start?planId=${plan.id}`}>
-                <Button size="sm">
-                  <Play className="mr-1 h-4 w-4" />
-                  Start
-                </Button>
-              </Link>
             </CardFooter>
           </Card>
         ))}
@@ -150,10 +203,11 @@ export function WorkoutPlanList({ workoutPlans }: WorkoutPlanListProps) {
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Workout Plan</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the workout plan &quot;{planToDelete?.name}&quot;
-              and all of its associated data.
+              Are you sure you want to delete &quot;{planToDelete?.name}&quot;? 
+              This will permanently remove the workout plan and all of its exercises. 
+              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -164,9 +218,12 @@ export function WorkoutPlanList({ workoutPlans }: WorkoutPlanListProps) {
               disabled={isPending}
             >
               {isPending ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Deleting...</>
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
               ) : (
-                "Delete"
+                "Delete Plan"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
