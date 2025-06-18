@@ -28,6 +28,19 @@ export function SuggestedWorkoutExercises({
   const [customExercise, setCustomExercise] = useState({ name: "", description: "" });
   const [isCreatingCustom, setIsCreatingCustom] = useState(false);
 
+  // Get user's custom exercises (excluding system exercises)
+  const getCustomExercises = () => {
+    return availableExercises.filter(exercise => {
+      // Check if this exercise is NOT in the suggested exercises
+      const isSystemExercise = Object.values(SUGGESTED_EXERCISES).flat().some(
+        suggestedEx => suggestedEx.name.toLowerCase() === exercise.name.toLowerCase()
+      );
+      return !isSystemExercise;
+    });
+  };
+
+  const customExercises = getCustomExercises();
+
   const handleCreateCustomExercise = async () => {
     if (!customExercise.name || isCreatingCustom) return;
     
@@ -116,9 +129,11 @@ export function SuggestedWorkoutExercises({
         </Button>
       </div>
 
-      {mode === "exercises" && (
-        <div className="space-y-6">
+      {/* Category buttons - fixed container to prevent layout shift */}
+      <div className="min-h-[40px] flex items-start">
+        {mode === "exercises" && (
           <div className="flex flex-wrap gap-2">
+            {/* Show system categories first */}
             {Object.keys(SUGGESTED_EXERCISES).map((category) => (
               <Button 
                 key={category}
@@ -129,54 +144,100 @@ export function SuggestedWorkoutExercises({
                 {category}
               </Button>
             ))}
+            {/* Add "My Exercises" category at the end if user has custom exercises */}
+            {customExercises.length > 0 && (
+              <Button 
+                variant={selectedCategory === "My Exercises" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory("My Exercises")}
+              >
+                My Exercises ({customExercises.length})
+              </Button>
+            )}
           </div>
+        )}
+      </div>
+
+      {mode === "exercises" && (
+        <div>
 
           <div className="grid gap-4">
-            {SUGGESTED_EXERCISES[selectedCategory as keyof typeof SUGGESTED_EXERCISES].map((exercise) => {
-              const existingExercise = availableExercises.find(
-                (e) => e.name.toLowerCase() === exercise.name.toLowerCase()
-              );
-              
-              const isCreating = creatingExercise === exercise.name;
-              
-              return (
-                <div 
-                  key={exercise.name} 
-                  className="flex items-center justify-between p-3 border rounded-md hover:bg-accent/50 transition-colors"
-                >
-                  <div>
-                    <h3 className="font-medium">{exercise.name}</h3>
-                    <p className="text-sm text-muted-foreground">{exercise.description}</p>
-                  </div>
-                  {existingExercise ? (
+            {selectedCategory === "My Exercises" ? (
+              // Show user's custom exercises
+              customExercises.length > 0 ? (
+                customExercises.map((exercise) => (
+                  <div 
+                    key={exercise.id} 
+                    className="flex items-center justify-between p-3 border rounded-md hover:bg-accent/50 transition-colors"
+                  >
+                    <div>
+                      <h3 className="font-medium">{exercise.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {exercise.description || "Custom exercise"}
+                      </p>
+                    </div>
                     <Button 
                       size="sm" 
                       variant="outline"
-                      onClick={() => onAddExercise(existingExercise.id, 3, 10)}
+                      onClick={() => onAddExercise(exercise.id, 3, 10)}
                     >
                       <Plus className="h-4 w-4 mr-1" /> Add
                     </Button>
-                  ) : (
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => createAndAddExercise(exercise.name, exercise.description || "")}
-                      disabled={isCreating}
-                    >
-                      {isCreating ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Adding...
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="h-4 w-4 mr-1" /> Add
-                        </>
-                      )}
-                    </Button>
-                  )}
-                </div>
-              );
-            })}
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-muted-foreground py-8">
+                  No custom exercises yet. Create some using the &ldquo;Create Custom&rdquo; tab!
+                </p>
+              )
+            ) : (
+              // Show system exercises for selected category
+              SUGGESTED_EXERCISES[selectedCategory as keyof typeof SUGGESTED_EXERCISES].map((exercise) => {
+                const existingExercise = availableExercises.find(
+                  (e) => e.name.toLowerCase() === exercise.name.toLowerCase()
+                );
+                
+                const isCreating = creatingExercise === exercise.name;
+                
+                return (
+                  <div 
+                    key={exercise.name} 
+                    className="flex items-center justify-between p-3 border rounded-md hover:bg-accent/50 transition-colors"
+                  >
+                    <div>
+                      <h3 className="font-medium">{exercise.name}</h3>
+                      <p className="text-sm text-muted-foreground">{exercise.description}</p>
+                    </div>
+                    {existingExercise ? (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => onAddExercise(existingExercise.id, 3, 10)}
+                      >
+                        <Plus className="h-4 w-4 mr-1" /> Add
+                      </Button>
+                    ) : (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => createAndAddExercise(exercise.name, exercise.description || "")}
+                        disabled={isCreating}
+                      >
+                        {isCreating ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Adding...
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="h-4 w-4 mr-1" /> Add
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       )}
