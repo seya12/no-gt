@@ -333,8 +333,8 @@ export function WorkoutPlanForm({
 
 
       <Dialog open={isExerciseDialogOpen} onOpenChange={setIsExerciseDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] md:max-w-[700px] lg:max-w-[900px] h-[90vh] md:h-[80vh] p-0">
-          <DialogHeader className="px-6 py-4 border-b">
+        <DialogContent className="sm:max-w-[425px] md:max-w-[700px] lg:max-w-[900px] h-[90vh] md:h-[80vh] p-0 flex flex-col">
+          <DialogHeader className="px-6 py-4 border-b flex-shrink-0">
             <DialogTitle>Add Exercises</DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-auto px-6 py-4">

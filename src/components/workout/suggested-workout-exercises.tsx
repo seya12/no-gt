@@ -113,7 +113,7 @@ export function SuggestedWorkoutExercises({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 h-full flex flex-col">
       <div className="flex flex-wrap gap-2">
         <Button
           variant={mode === "exercises" ? "default" : "outline"}
@@ -159,8 +159,7 @@ export function SuggestedWorkoutExercises({
       </div>
 
       {mode === "exercises" && (
-        <div>
-
+        <div className="flex-1 overflow-auto">
           <div className="grid gap-4">
             {selectedCategory === "My Exercises" ? (
               // Show user's custom exercises
@@ -243,7 +242,7 @@ export function SuggestedWorkoutExercises({
       )}
 
       {mode === "custom" && (
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1">
           <div className="space-y-2">
             <Label htmlFor="name">Exercise Name</Label>
             <Input
