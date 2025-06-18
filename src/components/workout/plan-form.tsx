@@ -186,11 +186,27 @@ export function WorkoutPlanForm({
                 size="sm"
                 onClick={() => setIsExerciseDialogOpen(true)}
                 disabled={isPending}
+                className="hidden md:flex"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Exercise
               </Button>
             </div>
+
+            {form.watch("exercises").length === 0 && (
+              <div className="text-center py-12 border border-dashed rounded-lg">
+                <p className="text-muted-foreground mb-4">No exercises added yet</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsExerciseDialogOpen(true)}
+                  disabled={isPending}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Your First Exercise
+                </Button>
+              </div>
+            )}
 
             <div className="space-y-4">
               {form.watch("exercises").map((exercise, index) => (
@@ -290,6 +306,20 @@ export function WorkoutPlanForm({
                 </div>
               ))}
             </div>
+
+            {form.watch("exercises").length > 0 && (
+              <div className="flex justify-center pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsExerciseDialogOpen(true)}
+                  disabled={isPending}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Another Exercise
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="fixed bottom-16 left-0 right-0 md:bottom-0 md:relative border-t md:border-none bg-background p-4 md:p-0 z-40">
@@ -299,6 +329,8 @@ export function WorkoutPlanForm({
           </div>
         </form>
       </Form>
+
+
 
       <Dialog open={isExerciseDialogOpen} onOpenChange={setIsExerciseDialogOpen}>
         <DialogContent className="sm:max-w-[425px] md:max-w-[700px] lg:max-w-[900px] h-[90vh] md:h-[80vh] p-0">
