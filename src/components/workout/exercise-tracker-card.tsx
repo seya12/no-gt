@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckCircle2, ChevronDown, ChevronUp } from "lucide-react"
+import { CheckCircle2, ChevronDown, ChevronUp, Trash2 } from "lucide-react"
 import type { Set } from "@prisma/client"
 
 interface ExerciseGroup {
@@ -17,6 +17,7 @@ interface ExerciseTrackerCardProps {
   isMinimized: boolean
   onToggleMinimize: (exerciseId: string) => void
   onInitiateSetCompletion: (exerciseId: string, setId: string) => void
+  onRemoveExercise?: (exerciseId: string, exerciseName: string) => void
   activeSetId: string | null
   activeExerciseId: string | null
 }
@@ -27,6 +28,7 @@ export function ExerciseTrackerCard({
   isMinimized,
   onToggleMinimize,
   onInitiateSetCompletion,
+  onRemoveExercise,
   activeSetId,
   activeExerciseId,
 }: ExerciseTrackerCardProps) {
@@ -34,9 +36,21 @@ export function ExerciseTrackerCard({
     <Card key={exerciseGroup.exerciseId}>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg">{exerciseGroup.exerciseName}</CardTitle>
-        <Button variant="ghost" size="sm" onClick={() => onToggleMinimize(exerciseGroup.exerciseId)}>
-          {isMinimized ? <ChevronDown /> : <ChevronUp />}
-        </Button>
+        <div className="flex items-center gap-2">
+          {onRemoveExercise && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => onRemoveExercise(exerciseGroup.exerciseId, exerciseGroup.exerciseName)}
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" onClick={() => onToggleMinimize(exerciseGroup.exerciseId)}>
+            {isMinimized ? <ChevronDown /> : <ChevronUp />}
+          </Button>
+        </div>
       </CardHeader>
       {!isMinimized && (
         <CardContent className="space-y-4">

@@ -53,7 +53,7 @@ export default async function NewWorkoutSessionPage({
       startedAt: new Date(), // Mark as started immediately
       userId: session.user.id,
       workoutPlanId: workoutPlan.id,
-      // Create sets for each exercise based on default values
+      // Create sets for each exercise based on workout plan defaults
       sets: {
         create: workoutPlan.exercises.flatMap(exercise => 
           Array.from({ length: exercise.defaultSets }, () => ({

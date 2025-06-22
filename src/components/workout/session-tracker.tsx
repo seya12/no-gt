@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { logExerciseProgressionAction } from "@/app/actions/exerciseActions"
 import type { Set } from "@prisma/client"
-import { completeWorkoutSessionAction } from "@/app/actions/workoutSessionActions"
+import { completeWorkoutSessionAction, removeExerciseFromSessionAction } from "@/app/actions/workoutSessionActions"
+import { Button } from "@/components/ui/button"
+import { Plus } from "lucide-react"
 import { SetCompletionDialog } from "./set-completion-dialog"
 import { ExerciseProgressionDialog } from "./exercise-progression-dialog"
 import { WorkoutCompletionDialog } from "./workout-completion-dialog"
@@ -13,6 +15,7 @@ import { WorkoutProgressCard } from "./workout-progress-card"
 import { ExerciseTrackerCard } from "./exercise-tracker-card"
 import { RestTimerDisplay } from "./rest-timer-display"
 import { updateWorkoutSetAction, UpdateWorkoutSetResponse } from "@/app/actions/workoutSetActions"
+import { AddExerciseDialog } from "./add-exercise-dialog"
 
 interface ExerciseGroup {
   exerciseId: string
@@ -20,14 +23,25 @@ interface ExerciseGroup {
   sets: Set[]
 }
 
+type AvailableExercise = {
+  id: string
+  name: string
+  userId: string
+  description: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
 interface WorkoutSessionTrackerProps {
   exercises: ExerciseGroup[]
   sessionId: string
+  availableExercises: AvailableExercise[]
 }
 
 export function WorkoutSessionTracker({
   exercises,
   sessionId,
+  availableExercises,
 }: WorkoutSessionTrackerProps) {
   const router = useRouter()
   const [sets, setSets] = useState<Record<string, Set>>(() => {
@@ -57,6 +71,8 @@ export function WorkoutSessionTracker({
   const [showWorkoutCompletionDialog, setShowWorkoutCompletionDialog] = useState(false)
   const [isSavingProgression, setIsSavingProgression] = useState(false)
   const [isCompletingWorkout, setIsCompletingWorkout] = useState(false)
+  const [showAddExerciseDialog, setShowAddExerciseDialog] = useState(false)
+  const [currentExercises, setCurrentExercises] = useState<ExerciseGroup[]>(exercises)
   
   // Timer effect
   useEffect(() => {
@@ -142,7 +158,7 @@ export function WorkoutSessionTracker({
 
   const initiateSetCompletion = (exerciseId: string, setId: string) => {
     const set = sets[setId]
-    const exercise = exercises.find(e => e.exerciseId === exerciseId)
+    const exercise = currentExercises.find(e => e.exerciseId === exerciseId)
     
     if (!set || !exercise) return
     
@@ -180,7 +196,7 @@ export function WorkoutSessionTracker({
       weight: tempWeight ?? 0,
     })
     
-    const exercise = exercises.find(e => e.exerciseId === activeExerciseId)
+    const exercise = currentExercises.find(e => e.exerciseId === activeExerciseId)
     if (exercise) {
       const allSetsInExerciseCompleted = exercise.sets.every(s => 
         s.id === activeSetId || sets[s.id]?.completed
@@ -237,7 +253,7 @@ export function WorkoutSessionTracker({
       setShowProgressionDialog(false)
       quitExercise()
 
-      const allExercisesCompleted = exercises.every(ex =>
+      const allExercisesCompleted = currentExercises.every(ex =>
         ex.sets.every(set => sets[set.id]?.completed)
       )
       if (allExercisesCompleted) {
@@ -268,6 +284,91 @@ export function WorkoutSessionTracker({
       setIsCompletingWorkout(false)
     }
   }
+
+  const handleExerciseAdded = (exerciseData: {
+    exerciseId: string
+    exerciseName: string
+    sets: Array<{
+      id: string
+      exerciseId: string
+      targetReps: number
+      weight: number
+      completed: boolean
+    }>
+  }) => {
+    // Add the new exercise to current exercises
+    const newExerciseGroup: ExerciseGroup = {
+      exerciseId: exerciseData.exerciseId,
+      exerciseName: exerciseData.exerciseName,
+      sets: exerciseData.sets.map(set => ({
+        id: set.id,
+        exerciseId: set.exerciseId,
+        workoutSessionId: sessionId,
+        targetReps: set.targetReps,
+        actualReps: null,
+        weight: set.weight,
+        notes: null,
+        completed: set.completed,
+        nextWeightAdjustment: null,
+      }))
+    }
+
+    setCurrentExercises(prev => [...prev, newExerciseGroup])
+
+    // Add the new sets to the sets state
+    const newSetsState: Record<string, Set> = {}
+    exerciseData.sets.forEach(set => {
+      newSetsState[set.id] = {
+        id: set.id,
+        exerciseId: set.exerciseId,
+        workoutSessionId: sessionId,
+        targetReps: set.targetReps,
+        actualReps: null,
+        weight: set.weight,
+        notes: null,
+        completed: set.completed,
+        nextWeightAdjustment: null,
+      }
+    })
+
+    setSets(prev => ({ ...prev, ...newSetsState }))
+  }
+
+  const handleRemoveExercise = async (exerciseId: string, exerciseName: string) => {
+    if (!confirm(`Are you sure you want to remove "${exerciseName}" from this workout? All sets for this exercise will be deleted.`)) {
+      return
+    }
+
+    try {
+      const result = await removeExerciseFromSessionAction({
+        sessionId,
+        exerciseId,
+      })
+
+      if (result.success) {
+        toast.success(`Removed ${exerciseName} from workout`)
+        
+        // Remove the exercise from current exercises
+        setCurrentExercises(prev => prev.filter(ex => ex.exerciseId !== exerciseId))
+        
+        // Remove all sets for this exercise from the sets state
+        setSets(prev => {
+          const newSets = { ...prev }
+          Object.keys(newSets).forEach(setId => {
+            if (newSets[setId].exerciseId === exerciseId) {
+              delete newSets[setId]
+            }
+          })
+          return newSets
+        })
+      } else {
+        toast.error(result.error || "Failed to remove exercise")
+      }
+    } catch (error) {
+      console.error("Error removing exercise:", error)
+      toast.error("An unexpected error occurred")
+    }
+  }
   
   // Calculate overall workout progress
   const completedSetsCount = Object.values(sets).filter(s => s.completed).length
@@ -283,12 +384,39 @@ export function WorkoutSessionTracker({
     }
   }, [allSetsCompleted, showWorkoutCompletionDialog, isCompletingWorkout])
   
-  if (!exercises || exercises.length === 0) {
-    return <p>No exercises in this session.</p>
+  if (!currentExercises || currentExercises.length === 0) {
+    return (
+      <div className="space-y-6 p-4 md:p-6 pb-24">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground mb-6">No exercises in this session.</p>
+          <Button
+            variant="default"
+            onClick={() => setShowAddExerciseDialog(true)}
+            className="w-full max-w-sm"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Your First Exercise
+          </Button>
+        </div>
+
+        <AddExerciseDialog
+          open={showAddExerciseDialog}
+          onOpenChange={setShowAddExerciseDialog}
+          sessionId={sessionId}
+          onExerciseAdded={handleExerciseAdded}
+          availableExercises={availableExercises.map(exercise => ({
+            id: exercise.id,
+            name: exercise.name,
+            category: "strength", // Default category - you may want to add this to your Exercise model
+            muscleGroups: [] // Default empty - you may want to add this to your Exercise model
+          }))}
+        />
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-6 p-4 md:p-6 pb-24">
       <WorkoutProgressCard 
         progressValue={workoutProgress}
         completedSetsCount={completedSetsCount}
@@ -307,7 +435,7 @@ export function WorkoutSessionTracker({
         onAddTime={addTimeToTimer}
       />
 
-      {exercises.map((exerciseGroup) => (
+      {currentExercises.map((exerciseGroup) => (
         <ExerciseTrackerCard
           key={exerciseGroup.exerciseId}
           exerciseGroup={exerciseGroup}
@@ -315,10 +443,23 @@ export function WorkoutSessionTracker({
           isMinimized={minimizedExercises[exerciseGroup.exerciseId] || false}
           onToggleMinimize={toggleExerciseMinimized}
           onInitiateSetCompletion={initiateSetCompletion}
+          onRemoveExercise={handleRemoveExercise}
           activeSetId={activeSetId}
           activeExerciseId={activeExerciseId}
         />
       ))}
+
+      {/* Add Exercise Button */}
+      <div className="flex justify-center pt-4">
+        <Button
+          variant="outline"
+          onClick={() => setShowAddExerciseDialog(true)}
+          className="w-full max-w-sm"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Exercise
+        </Button>
+      </div>
 
       <SetCompletionDialog
         open={showCompletionDialog}
@@ -336,7 +477,7 @@ export function WorkoutSessionTracker({
       <ExerciseProgressionDialog
         open={showProgressionDialog}
         onOpenChange={setShowProgressionDialog}
-        exerciseName={exercises.find(ex => ex.exerciseId === activeExerciseId)?.exerciseName}
+        exerciseName={currentExercises.find(ex => ex.exerciseId === activeExerciseId)?.exerciseName}
         shouldProgress={shouldProgress}
         onShouldProgressChange={setShouldProgress}
         progressionAmount={progressionAmount}
@@ -352,6 +493,19 @@ export function WorkoutSessionTracker({
         onConfirm={handleWorkoutCompletion}
         onCancel={() => setShowWorkoutCompletionDialog(false)}
         isCompleting={isCompletingWorkout}
+      />
+
+      <AddExerciseDialog
+        open={showAddExerciseDialog}
+        onOpenChange={setShowAddExerciseDialog}
+        sessionId={sessionId}
+        onExerciseAdded={handleExerciseAdded}
+        availableExercises={availableExercises.map(exercise => ({
+          id: exercise.id,
+          name: exercise.name,
+          category: "strength", // Default category - you may want to add this to your Exercise model
+          muscleGroups: [] // Default empty - you may want to add this to your Exercise model
+        }))}
       />
     </div>
   )

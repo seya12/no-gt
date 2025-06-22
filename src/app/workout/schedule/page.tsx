@@ -143,7 +143,6 @@ export default async function SchedulePage({ searchParams }: SchedulePageProps) 
           targetReps: exercise.defaultReps || 10,
           weight: exercise.startingWeight || 0,
           completed: false,
-          // Order was not defined in the Prisma schema
         }));
 
         // Insert sets in a separate operation

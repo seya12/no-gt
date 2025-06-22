@@ -24,6 +24,27 @@ export interface LogWorkoutResponse {
   sessionId?: string;
 }
 
+export interface AddExerciseToSessionResponse {
+  success: boolean;
+  error?: string;
+  sets?: Array<{
+    id: string;
+    exerciseId: string;
+    targetReps: number;
+    weight: number;
+    completed: boolean;
+    exercise: {
+      id: string;
+      name: string;
+    };
+  }>;
+}
+
+export interface RemoveExerciseFromSessionResponse {
+  success: boolean;
+  error?: string;
+}
+
 type LoggedSet = {
   exerciseId: string;
   reps: number;
@@ -209,5 +230,157 @@ export async function startWorkoutSessionAction(sessionId: string): Promise<Star
   } catch (error) {
     console.error("Failed to start workout session:", error);
     return { success: false, error: "Failed to start workout session" };
+  }
+}
+
+export async function addExerciseToSessionAction(data: {
+  sessionId: string;
+  exerciseId: string;
+  sets: number;
+  reps: number;
+  weight: number;
+}): Promise<AddExerciseToSessionResponse> {
+  const session = await getServerSession(authConfig);
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const { sessionId, exerciseId, sets: setsCount, reps, weight } = data;
+
+    if (!sessionId || !exerciseId || setsCount < 1) {
+      return { success: false, error: "Missing required fields" };
+    }
+
+    // Verify the workout session belongs to the user and is active
+    const workoutSession = await prisma.workoutSession.findUnique({
+      where: {
+        id: sessionId,
+        userId: session.user.id,
+      },
+    });
+
+    if (!workoutSession) {
+      return { success: false, error: "Workout session not found or not authorized" };
+    }
+
+    if (workoutSession.completedAt) {
+      return { success: false, error: "Cannot add exercises to a completed workout" };
+    }
+
+    // Verify the exercise exists
+    const exercise = await prisma.exercise.findUnique({
+      where: { id: exerciseId },
+    });
+
+    if (!exercise) {
+      return { success: false, error: "Exercise not found" };
+    }
+
+    // If weight is 0, try to get it from the workout plan
+    let finalWeight = weight;
+    if (weight === 0) {
+      // Check if this exercise is in any of the user's workout plans to get default weight
+      const planExercise = await prisma.workoutPlanExercise.findFirst({
+        where: {
+          exerciseId: exerciseId,
+          workoutPlan: {
+            userId: session.user.id,
+          },
+        },
+        orderBy: {
+          workoutPlan: {
+            updatedAt: 'desc', // Get the most recently updated plan
+          },
+        },
+      });
+      
+      if (planExercise?.startingWeight) {
+        finalWeight = planExercise.startingWeight;
+      }
+    }
+
+    // Create the sets for the new exercise
+    const newSets = await Promise.all(
+      Array.from({ length: setsCount }, () =>
+        prisma.set.create({
+          data: {
+            workoutSessionId: sessionId,
+            exerciseId: exerciseId,
+            targetReps: reps,
+            weight: finalWeight,
+            completed: false,
+          },
+          include: {
+            exercise: true,
+          },
+        })
+      )
+    );
+
+    // Revalidate the workout session page
+    revalidatePath(`/workout/session/${sessionId}`);
+
+    return { 
+      success: true, 
+      sets: newSets 
+    };
+
+  } catch (error) {
+    console.error("Error adding exercise to session:", error);
+    return { success: false, error: "Failed to add exercise to workout. Please try again." };
+  }
+}
+
+export async function removeExerciseFromSessionAction(data: {
+  sessionId: string;
+  exerciseId: string;
+}): Promise<RemoveExerciseFromSessionResponse> {
+  const session = await getServerSession(authConfig);
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const { sessionId, exerciseId } = data;
+
+    if (!sessionId || !exerciseId) {
+      return { success: false, error: "Missing required fields" };
+    }
+
+    // Verify the workout session belongs to the user and is active
+    const workoutSession = await prisma.workoutSession.findUnique({
+      where: {
+        id: sessionId,
+        userId: session.user.id,
+      },
+    });
+
+    if (!workoutSession) {
+      return { success: false, error: "Workout session not found or not authorized" };
+    }
+
+    if (workoutSession.completedAt) {
+      return { success: false, error: "Cannot remove exercises from a completed workout" };
+    }
+
+    // Delete all sets for this exercise in this session
+    await prisma.set.deleteMany({
+      where: {
+        workoutSessionId: sessionId,
+        exerciseId: exerciseId,
+      },
+    });
+
+    // Revalidate the workout session page
+    revalidatePath(`/workout/session/${sessionId}`);
+
+    return { success: true };
+
+  } catch (error) {
+    console.error("Error removing exercise from session:", error);
+    return { success: false, error: "Failed to remove exercise from workout. Please try again." };
   }
 } 

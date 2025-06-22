@@ -61,6 +61,19 @@ export default async function WorkoutSessionPage({
     notFound()
   }
 
+  // Fetch available exercises for adding to workout
+  const availableExercises = await prisma.exercise.findMany({
+    where: {
+      OR: [
+        { userId: session.user.id }, // User's custom exercises
+        { user: { email: 'system@no-gt.local' } } // System exercises
+      ]
+    },
+    orderBy: {
+      name: "asc",
+    },
+  })
+
   // If this is a scheduled workout that hasn't been started yet, mark it as started and create sets
   if (workoutSession.scheduled && !workoutSession.startedAt) {
     // Create sets if they don't exist
@@ -169,6 +182,7 @@ export default async function WorkoutSessionPage({
         <WorkoutSessionTracker 
           exercises={groupedSets}
           sessionId={id}
+          availableExercises={availableExercises}
         />
       </div>
     </div>

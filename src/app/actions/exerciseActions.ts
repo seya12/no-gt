@@ -278,19 +278,78 @@ export async function logExerciseProgressionAction(
     //   return { success: false, error: "Forbidden. You can only log progression for your own exercises." };
     // }
 
-    // Placeholder for actual progression logging logic
-    // This might involve creating/updating a ProgressionLog table, updating Exercise.currentWeight, etc.
-    console.log("Logging progression for exercise:", validatedExerciseId, {
+    // Update the startingWeight in all workout plans that contain this exercise
+    if (shouldProgress && progressionAmount > 0) {
+      // Find the most recent completed set to get the current weight
+      const recentSet = await prisma.set.findFirst({
+        where: {
+          exerciseId: validatedExerciseId,
+          workoutSession: {
+            userId: session.user.id,
+          },
+          completed: true,
+        },
+        orderBy: {
+          workoutSession: {
+            createdAt: 'desc', // Use createdAt instead of completedAt
+          },
+        },
+      });
+
+      if (recentSet) {
+        const newWeight = recentSet.weight + progressionAmount;
+        
+        console.log("Progression Debug:", {
+          exerciseId: validatedExerciseId,
+          recentSetWeight: recentSet.weight,
+          progressionAmount,
+          newWeight,
+          recentSetId: recentSet.id
+        });
+        
+        // Update all workout plans that contain this exercise
+        const updateResult = await prisma.workoutPlanExercise.updateMany({
+          where: {
+            exerciseId: validatedExerciseId,
+            workoutPlan: {
+              userId: session.user.id,
+            },
+          },
+          data: {
+            startingWeight: newWeight,
+          },
+        });
+
+        console.log("Updated workout plan exercises:", updateResult.count);
+
+        // Also log this progression in the most recent set for history
+        await prisma.set.update({
+          where: {
+            id: recentSet.id,
+          },
+          data: {
+            notes: `+${progressionAmount}kg progression applied to future workouts (new weight: ${newWeight}kg)`,
+            nextWeightAdjustment: 'increase',
+          },
+        });
+      } else {
+        console.log("No recent set found for progression");
+      }
+    }
+
+    console.log("Progression saved for exercise:", validatedExerciseId, {
       userId: session.user.id,
       shouldProgress,
       progressionAmount,
     });
 
-    // For now, just revalidate paths where progression might be displayed
+    // Revalidate paths where progression might be displayed
     revalidatePath(`/exercises/${validatedExerciseId}`);
-    revalidatePath("/dashboard"); // If dashboard shows progression summaries
+    revalidatePath("/dashboard");
+    revalidatePath("/workout/plans");
+    revalidatePath("/workout/start");
 
-    return { success: true /*, shouldProgress, progressionAmount */ }; // Return relevant data if needed by client
+    return { success: true };
 
   } catch (error) {
     console.error(`Error logging progression for exercise ${validatedExerciseId}:`, error);

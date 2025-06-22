@@ -18,8 +18,8 @@ export default async function NewWorkoutPlanCustomPage() {
   const exercises = await prisma.exercise.findMany({
     where: {
       OR: [
-        { userId: session.user.id },
-        { user: { email: 'system@no-gt.local' } }
+        { userId: session.user.id }, // User's custom exercises
+        { user: { email: 'system@no-gt.local' } } // System exercises
       ]
     },
     orderBy: {
