@@ -175,7 +175,7 @@ export default async function DayPage({ params }: DayPageProps) {
                 </p>
               </CardContent>
               <CardFooter>
-                <Link href={`/workout/session/new?date=${date}`}>
+                <Link href={`/workout/log?date=${date}`}>
                   <Button>
                     <PlusCircle className="h-4 w-4 mr-2" />
                     Log a Workout

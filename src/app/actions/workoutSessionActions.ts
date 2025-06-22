@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { authConfig } from "@/lib/auth/auth.config";
 import { prisma } from "@/lib/db";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 
 export interface CompleteWorkoutSessionResponse {
   success: boolean;
@@ -16,6 +16,87 @@ export interface CompleteWorkoutSessionResponse {
 export interface StartWorkoutSessionResponse {
   success: boolean;
   error?: string;
+}
+
+export interface LogWorkoutResponse {
+  success: boolean;
+  error?: string;
+  sessionId?: string;
+}
+
+type LoggedSet = {
+  exerciseId: string;
+  reps: number;
+  weight: number;
+}
+
+export async function logWorkoutAction(data: {
+  workoutPlanId: string;
+  date: string; // YYYY-MM-DD format
+  sets: LoggedSet[];
+}): Promise<LogWorkoutResponse> {
+  const session = await getServerSession(authConfig);
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const { workoutPlanId, date, sets } = data;
+
+    if (!workoutPlanId || !date || !sets.length) {
+      return { success: false, error: "Missing required fields" };
+    }
+
+    // Verify the workout plan belongs to the user
+    const workoutPlan = await prisma.workoutPlan.findUnique({
+      where: {
+        id: workoutPlanId,
+        userId: session.user.id,
+      },
+    });
+
+    if (!workoutPlan) {
+      return { success: false, error: "Workout plan not found or not authorized" };
+    }
+
+    const selectedDate = parseISO(date);
+    
+    // Create the workout session with all sets marked as completed
+    const workoutSession = await prisma.workoutSession.create({
+      data: {
+        date: selectedDate,
+        completedAt: selectedDate, // Mark as completed immediately
+        userId: session.user.id,
+        workoutPlanId: workoutPlan.id,
+        scheduled: false,
+        sets: {
+          create: sets.map(set => ({
+            exerciseId: set.exerciseId,
+            targetReps: set.reps,
+            actualReps: set.reps,
+            weight: set.weight,
+            completed: true, // All sets are pre-completed
+          })),
+        },
+      },
+    });
+
+    // Revalidate relevant paths
+    revalidatePath("/dashboard");
+    revalidatePath("/workout/history");
+    revalidatePath(`/workout/day/${date}`);
+    revalidatePath("/workout/calendar");
+
+    return { 
+      success: true, 
+      sessionId: workoutSession.id 
+    };
+
+  } catch (error) {
+    console.error("Error logging workout:", error);
+    return { success: false, error: "Failed to log workout. Please try again." };
+  }
 }
 
 export async function completeWorkoutSessionAction(
