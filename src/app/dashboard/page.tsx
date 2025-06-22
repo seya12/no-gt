@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { PlusCircle, Dumbbell, Calendar, ListChecks, ChevronLeft, ChevronRight, Play, Clock, Zap, Target } from "lucide-react"
+import { PlusCircle, Dumbbell, Calendar, ListChecks, ChevronLeft, ChevronRight, Play, Clock, Zap, Target, X } from "lucide-react"
 import Link from "next/link"
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
@@ -163,24 +163,57 @@ export default async function DashboardPage({
             {/* Continue Last Workout - Hero Treatment */}
             {lastIncompleteWorkout && (
               <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-primary/10 shadow-lg">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="p-3 rounded-full bg-primary/20">
-                        <Play className="h-6 w-6 text-primary" />
+                <CardContent className="p-4 sm:p-6">
+                  {/* Mobile-first layout */}
+                  <div className="space-y-4">
+                    {/* Header with icon and title */}
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 sm:p-3 rounded-full bg-primary/20">
+                        <Play className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                       </div>
-                      <div>
-                        <h3 className="text-xl font-semibold text-primary">Continue Workout</h3>
-                        <p className="text-lg font-medium">{lastIncompleteWorkout.workoutPlan.name}</p>
-                        <p className="text-sm text-muted-foreground">Pick up where you left off</p>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg sm:text-xl font-semibold text-primary">Continue Workout</h3>
+                        <p className="text-base sm:text-lg font-medium truncate">{lastIncompleteWorkout.workoutPlan.name}</p>
                       </div>
                     </div>
-                    <Link href={`/workout/session/${lastIncompleteWorkout.id}`}>
-                      <Button size="lg" className="bg-primary hover:bg-primary/90 shadow-lg">
-                        <Play className="h-4 w-4 mr-2" />
-                        Continue
-                      </Button>
-                    </Link>
+
+                    {/* Workout details */}
+                    <div className="space-y-2 pl-11 sm:pl-14">
+                      <p className="text-sm text-muted-foreground">
+                        Started {lastIncompleteWorkout.startedAt ? format(new Date(lastIncompleteWorkout.startedAt), 'MMM d, h:mm a') : 'recently'}
+                      </p>
+                      {lastIncompleteWorkout.sets.length > 0 && (
+                        <>
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0">
+                            <span className="text-sm text-muted-foreground">
+                              {lastIncompleteWorkout.sets.filter(set => set.completed).length} of {lastIncompleteWorkout.sets.length} sets completed
+                            </span>
+                            <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full w-fit">
+                              {Math.round((lastIncompleteWorkout.sets.filter(set => set.completed).length / lastIncompleteWorkout.sets.length) * 100)}% done
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Next: {lastIncompleteWorkout.sets.find(set => !set.completed)?.exercise?.name || 'Complete workout'}
+                          </p>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Action buttons - mobile first */}
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                      <Link href={`/workout/session/${lastIncompleteWorkout.id}`} className="order-1 sm:order-2">
+                        <Button size="lg" className="w-full bg-primary hover:bg-primary/90 shadow-lg">
+                          <Play className="h-4 w-4 mr-2" />
+                          Continue Workout
+                        </Button>
+                      </Link>
+                      <Link href={`/workout/session/${lastIncompleteWorkout.id}/abandon`} className="order-2 sm:order-1">
+                        <Button variant="outline" size="lg" className="w-full text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30">
+                          <X className="h-4 w-4 mr-2" />
+                          Stop Workout
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

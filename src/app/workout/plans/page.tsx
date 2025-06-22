@@ -63,7 +63,64 @@ export default async function WorkoutPlansPage() {
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl"></div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Main Content */}
+      <Card className="shadow-lg">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl flex items-center">
+                <Target className="h-6 w-6 mr-2 text-primary" />
+                Your Workout Plans
+              </CardTitle>
+              <CardDescription className="text-base mt-1">
+                Create structured routines and track your progress over time
+              </CardDescription>
+            </div>
+            {workoutPlans.length > 0 && (
+              <Link href="/workout/plans/new" className="hidden sm:block">
+                <Button variant="outline" className="hover:bg-primary hover:text-primary-foreground">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Create Plan
+                </Button>
+              </Link>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {workoutPlans.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="max-w-md mx-auto">
+                <div className="p-4 rounded-full bg-green-500/10 w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+                  <Target className="h-10 w-10 text-green-500" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Create Your First Workout Plan</h3>
+                <p className="text-muted-foreground mb-6">
+                  Design structured workout routines with your favorite exercises. 
+                  Set target reps, sets, and weights to track your progress over time.
+                </p>
+                <div className="space-y-3">
+                  <Link href="/workout/plans/new">
+                    <Button size="lg" className="bg-green-500 hover:bg-green-600 w-full">
+                      <PlusCircle className="mr-2 h-5 w-5" />
+                      Create Custom Plan
+                    </Button>
+                  </Link>
+                  <Link href="/workout/plans/new/template">
+                    <Button size="lg" variant="outline" className="w-full hover:bg-primary hover:text-primary-foreground">
+                      <Target className="mr-2 h-5 w-5" />
+                      Use Template
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <WorkoutPlanList workoutPlans={workoutPlans} />
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Stats Cards - Moved to bottom */}
       {workoutPlans.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-background">
@@ -123,63 +180,6 @@ export default async function WorkoutPlansPage() {
           </Card>
         </div>
       )}
-      
-      {/* Main Content */}
-      <Card className="shadow-lg">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-2xl flex items-center">
-                <Target className="h-6 w-6 mr-2 text-primary" />
-                Your Workout Plans
-              </CardTitle>
-              <CardDescription className="text-base mt-1">
-                Create structured routines and track your progress over time
-              </CardDescription>
-            </div>
-            {workoutPlans.length > 0 && (
-              <Link href="/workout/plans/new" className="hidden sm:block">
-                <Button variant="outline" className="hover:bg-primary hover:text-primary-foreground">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Create Plan
-                </Button>
-              </Link>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          {workoutPlans.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="max-w-md mx-auto">
-                <div className="p-4 rounded-full bg-green-500/10 w-20 h-20 mx-auto mb-6 flex items-center justify-center">
-                  <Target className="h-10 w-10 text-green-500" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Create Your First Workout Plan</h3>
-                <p className="text-muted-foreground mb-6">
-                  Design structured workout routines with your favorite exercises. 
-                  Set target reps, sets, and weights to track your progress over time.
-                </p>
-                <div className="space-y-3">
-                  <Link href="/workout/plans/new">
-                    <Button size="lg" className="bg-green-500 hover:bg-green-600 w-full">
-                      <PlusCircle className="mr-2 h-5 w-5" />
-                      Create Custom Plan
-                    </Button>
-                  </Link>
-                  <Link href="/workout/plans/new/template">
-                    <Button size="lg" variant="outline" className="w-full hover:bg-primary hover:text-primary-foreground">
-                      <Target className="mr-2 h-5 w-5" />
-                      Use Template
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <WorkoutPlanList workoutPlans={workoutPlans} />
-          )}
-        </CardContent>
-      </Card>
     </div>
   )
 } 

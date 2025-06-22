@@ -51,53 +51,6 @@ export default async function ExercisesPage() {
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-500/5 rounded-full blur-2xl"></div>
       </div>
 
-      {/* Stats Cards */}
-      {exercises.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-background">
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-blue-500/20">
-                  <Target className="h-5 w-5 text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{exercises.length}</p>
-                  <p className="text-sm text-muted-foreground">Total Exercises</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-background">
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-green-500/20">
-                  <TrendingUp className="h-5 w-5 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{exercises.filter(e => e.description).length}</p>
-                  <p className="text-sm text-muted-foreground">With Descriptions</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-background">
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-purple-500/20">
-                  <Dumbbell className="h-5 w-5 text-purple-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">Ready</p>
-                  <p className="text-sm text-muted-foreground">For Workouts</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-      
       {/* Main Content */}
       <Card className="shadow-lg">
         <CardHeader className="pb-4">
@@ -146,6 +99,53 @@ export default async function ExercisesPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Stats Cards - Moved to bottom */}
+      {exercises.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-background">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 rounded-lg bg-blue-500/20">
+                  <Target className="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{exercises.length}</p>
+                  <p className="text-sm text-muted-foreground">Total Exercises</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-background">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 rounded-lg bg-green-500/20">
+                  <TrendingUp className="h-5 w-5 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{exercises.filter(e => e.description).length}</p>
+                  <p className="text-sm text-muted-foreground">With Descriptions</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-background">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 rounded-lg bg-purple-500/20">
+                  <Dumbbell className="h-5 w-5 text-purple-500" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">Ready</p>
+                  <p className="text-sm text-muted-foreground">For Workouts</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 } 
