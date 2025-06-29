@@ -74,7 +74,7 @@ export default async function ExercisesPage() {
             )}
           </div>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className="pt-0 overflow-hidden">
           {exercises.length === 0 ? (
             <div className="text-center py-12">
               <div className="max-w-md mx-auto">

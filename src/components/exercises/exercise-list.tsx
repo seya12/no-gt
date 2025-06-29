@@ -55,9 +55,9 @@ export function ExerciseList({ exercises }: ExerciseListProps) {
 
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {exercises.map((exercise) => (
-          <Card key={exercise.id} className="group hover:shadow-lg transition-all duration-200 border-border hover:border-primary/30">
+          <Card key={exercise.id} className="group hover:shadow-lg transition-all duration-200 border-border hover:border-primary/30 overflow-hidden">
             <CardContent className="p-6">
               <div className="space-y-4">
                 {/* Header */}
@@ -67,8 +67,8 @@ export function ExerciseList({ exercises }: ExerciseListProps) {
                       <Target className="h-5 w-5 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-lg truncate group-hover:text-primary transition-colors">
-                        {exercise.name}
+                      <h3 className="font-semibold text-lg break-words group-hover:text-primary transition-colors">
+                        {exercise.name || "Unnamed Exercise"}
                       </h3>
                     </div>
                   </div>
