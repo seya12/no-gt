@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { logExerciseProgressionAction } from "@/app/actions/exerciseActions"
 import type { Set } from "@prisma/client"
-import { completeWorkoutSessionAction, removeExerciseFromSessionAction } from "@/app/actions/workoutSessionActions"
+import { completeWorkoutSessionAction, removeExerciseFromSessionAction, addExerciseToSessionAction } from "@/app/actions/workoutSessionActions"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import { SetCompletionDialog } from "./set-completion-dialog"
@@ -15,7 +15,7 @@ import { WorkoutProgressCard } from "./workout-progress-card"
 import { ExerciseTrackerCard } from "./exercise-tracker-card"
 import { RestTimerDisplay } from "./rest-timer-display"
 import { updateWorkoutSetAction, UpdateWorkoutSetResponse } from "@/app/actions/workoutSetActions"
-import { AddExerciseDialog } from "./add-exercise-dialog"
+import { ExercisePickerDialog } from "../shared/exercise-picker-dialog"
 
 interface ExerciseGroup {
   exerciseId: string
@@ -285,53 +285,62 @@ export function WorkoutSessionTracker({
     }
   }
 
-  const handleExerciseAdded = (exerciseData: {
-    exerciseId: string
-    exerciseName: string
-    sets: Array<{
-      id: string
-      exerciseId: string
-      targetReps: number
-      weight: number
-      completed: boolean
-    }>
-  }) => {
-    // Add the new exercise to current exercises
-    const newExerciseGroup: ExerciseGroup = {
-      exerciseId: exerciseData.exerciseId,
-      exerciseName: exerciseData.exerciseName,
-      sets: exerciseData.sets.map(set => ({
-        id: set.id,
-        exerciseId: set.exerciseId,
-        workoutSessionId: sessionId,
-        targetReps: set.targetReps,
-        actualReps: null,
-        weight: set.weight,
-        notes: null,
-        completed: set.completed,
-        nextWeightAdjustment: null,
-      }))
-    }
+  const handleExerciseSelected = async (exerciseId: string, exerciseName: string, sets = 3, reps = 12, weight = 0) => {
+    try {
+      const result = await addExerciseToSessionAction({
+        sessionId,
+        exerciseId,
+        sets,
+        reps,
+        weight,
+      })
 
-    setCurrentExercises(prev => [...prev, newExerciseGroup])
+      if (result.success && result.sets) {
+        toast.success(`Added ${exerciseName} to workout!`)
+        
+        // Add the new exercise to current exercises
+        const newExerciseGroup: ExerciseGroup = {
+          exerciseId,
+          exerciseName,
+          sets: result.sets.map(set => ({
+            id: set.id,
+            exerciseId: set.exerciseId,
+            workoutSessionId: sessionId,
+            targetReps: set.targetReps,
+            actualReps: null,
+            weight: set.weight,
+            notes: null,
+            completed: set.completed,
+            nextWeightAdjustment: null,
+          }))
+        }
 
-    // Add the new sets to the sets state
-    const newSetsState: Record<string, Set> = {}
-    exerciseData.sets.forEach(set => {
-      newSetsState[set.id] = {
-        id: set.id,
-        exerciseId: set.exerciseId,
-        workoutSessionId: sessionId,
-        targetReps: set.targetReps,
-        actualReps: null,
-        weight: set.weight,
-        notes: null,
-        completed: set.completed,
-        nextWeightAdjustment: null,
+        setCurrentExercises(prev => [...prev, newExerciseGroup])
+
+        // Add the new sets to the sets state
+        const newSetsState: Record<string, Set> = {}
+        result.sets.forEach(set => {
+          newSetsState[set.id] = {
+            id: set.id,
+            exerciseId: set.exerciseId,
+            workoutSessionId: sessionId,
+            targetReps: set.targetReps,
+            actualReps: null,
+            weight: set.weight,
+            notes: null,
+            completed: set.completed,
+            nextWeightAdjustment: null,
+          }
+        })
+
+        setSets(prev => ({ ...prev, ...newSetsState }))
+      } else {
+        toast.error(result.error || "Failed to add exercise")
       }
-    })
-
-    setSets(prev => ({ ...prev, ...newSetsState }))
+    } catch (error) {
+      console.error("Error adding exercise:", error)
+      toast.error("An unexpected error occurred")
+    }
   }
 
   const handleRemoveExercise = async (exerciseId: string, exerciseName: string) => {
@@ -399,17 +408,14 @@ export function WorkoutSessionTracker({
           </Button>
         </div>
 
-        <AddExerciseDialog
+        <ExercisePickerDialog
           open={showAddExerciseDialog}
           onOpenChange={setShowAddExerciseDialog}
-          sessionId={sessionId}
-          onExerciseAdded={handleExerciseAdded}
-          availableExercises={availableExercises.map(exercise => ({
-            id: exercise.id,
-            name: exercise.name,
-            category: "strength", // Default category - you may want to add this to your Exercise model
-            muscleGroups: [] // Default empty - you may want to add this to your Exercise model
-          }))}
+          availableExercises={availableExercises}
+          onExerciseSelected={handleExerciseSelected}
+          title="Add Exercise to Workout"
+          showCreateOption={true}
+          showSetConfiguration={true}
         />
       </div>
     )
@@ -503,17 +509,14 @@ export function WorkoutSessionTracker({
         isCompleting={isCompletingWorkout}
       />
 
-      <AddExerciseDialog
+      <ExercisePickerDialog
         open={showAddExerciseDialog}
         onOpenChange={setShowAddExerciseDialog}
-        sessionId={sessionId}
-        onExerciseAdded={handleExerciseAdded}
-        availableExercises={availableExercises.map(exercise => ({
-          id: exercise.id,
-          name: exercise.name,
-          category: "strength", // Default category - you may want to add this to your Exercise model
-          muscleGroups: [] // Default empty - you may want to add this to your Exercise model
-        }))}
+        availableExercises={availableExercises}
+        onExerciseSelected={handleExerciseSelected}
+        title="Add Exercise to Workout"
+        showCreateOption={true}
+        showSetConfiguration={true}
       />
     </div>
   )

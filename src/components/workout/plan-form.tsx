@@ -22,14 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+
 import { Exercise } from "@prisma/client"
-import { SuggestedWorkoutExercises } from "./suggested-workout-exercises"
+import { ExercisePickerDialog } from "../shared/exercise-picker-dialog"
 import { Plus } from "lucide-react"
 import { createWorkoutPlanAction, updateWorkoutPlanAction } from "@/app/actions/workoutPlanActions"
 
@@ -126,19 +121,17 @@ export function WorkoutPlanForm({
   }
 
   // Add an exercise from suggestions
-  const addSuggestedExercise = async (exerciseId: string, defaultSets = 3, defaultReps = 10) => {
+  const addSuggestedExercise = (exerciseId: string, exerciseName: string, sets = 3, reps = 10, weight?: number) => {
     // Add the exercise to the form
     form.setValue("exercises", [
       ...form.getValues("exercises"),
       {
         exerciseId,
-        defaultSets,
-        defaultReps,
-        startingWeight: null,
+        defaultSets: sets,
+        defaultReps: reps,
+        startingWeight: weight || null,
       },
     ])
-    // Close the dialog after adding
-    setIsExerciseDialogOpen(false)
   }
 
   // Handle when a new exercise is created
@@ -147,7 +140,7 @@ export function WorkoutPlanForm({
     setExercises(prev => [...prev, newExercise])
     
     // Add the new exercise to the form
-    addSuggestedExercise(newExercise.id, 3, 10)
+    addSuggestedExercise(newExercise.id, newExercise.name, 3, 10)
   }
 
   // Remove an exercise from the form
@@ -162,7 +155,7 @@ export function WorkoutPlanForm({
   return (
     <>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-32 md:pb-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-20 md:pb-8">
           <FormField
             control={form.control}
             name="name"
@@ -322,8 +315,8 @@ export function WorkoutPlanForm({
             )}
           </div>
 
-          <div className="fixed bottom-16 left-0 right-0 md:bottom-0 md:relative border-t md:border-none bg-background p-4 md:p-0 z-40">
-            <Button type="submit" className="w-full md:w-auto" disabled={isPending}>
+          <div className="pt-6">
+            <Button type="submit" className="w-full" disabled={isPending}>
               {isPending ? "Saving..." : planId ? "Save Changes" : "Create Plan"}
             </Button>
           </div>
@@ -332,20 +325,16 @@ export function WorkoutPlanForm({
 
 
 
-      <Dialog open={isExerciseDialogOpen} onOpenChange={setIsExerciseDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] md:max-w-[700px] lg:max-w-[900px] h-[90vh] md:h-[80vh] p-0 flex flex-col">
-          <DialogHeader className="px-6 py-4 border-b flex-shrink-0">
-            <DialogTitle>Add Exercises</DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 overflow-auto px-6 py-4">
-            <SuggestedWorkoutExercises 
-              availableExercises={exercises}
-              onAddExercise={addSuggestedExercise}
-              onExerciseCreated={handleExerciseCreated}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ExercisePickerDialog
+        open={isExerciseDialogOpen}
+        onOpenChange={setIsExerciseDialogOpen}
+        availableExercises={exercises}
+        onExerciseSelected={addSuggestedExercise}
+        onExerciseCreated={handleExerciseCreated}
+        title="Add Exercises"
+        showCreateOption={true}
+        showSetConfiguration={false}
+      />
     </>
   )
 } 

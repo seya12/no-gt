@@ -13,7 +13,7 @@ export default async function NewWorkoutPlanPage() {
   }
   
   return (
-    <div className="container p-4 md:py-6 max-w-4xl">
+    <div className="container p-4 md:py-6 pb-20 max-w-4xl">
       <h1 className="text-2xl font-bold mb-6">Create New Workout Plan</h1>
       
       <div className="grid gap-6 md:grid-cols-2">

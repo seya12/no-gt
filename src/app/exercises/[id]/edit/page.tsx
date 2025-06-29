@@ -32,7 +32,7 @@ export default async function EditExercisePage({
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="container mx-auto p-4 pb-20 space-y-6">
       <h1 className="text-2xl font-bold">Edit Exercise</h1>
       
       <Card>
