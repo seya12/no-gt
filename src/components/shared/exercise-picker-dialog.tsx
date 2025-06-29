@@ -38,8 +38,16 @@ export function ExercisePickerDialog({
   }
 
   const handleExerciseCreated = (newExercise: Exercise) => {
-    onExerciseCreated?.(newExercise)
-    onOpenChange(false) // Close dialog after creation
+    // If we're in workout mode with set configuration, don't close dialog yet
+    // The configuration screen should be shown within the same dialog
+    if (showSetConfiguration) {
+      // Don't close dialog - let the exercise picker handle the configuration flow
+      onExerciseCreated?.(newExercise)
+    } else {
+      // For plan mode or simple mode, close dialog after creation
+      onExerciseCreated?.(newExercise)
+      onOpenChange(false)
+    }
   }
 
   return (

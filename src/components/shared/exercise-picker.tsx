@@ -133,11 +133,16 @@ export function ExercisePicker({
       if (result.success && result.exercise) {
         toast.success(`Created exercise: ${customExercise.name}`)
         
-        // If onExerciseCreated is provided, use it (for plan mode)
-        // Otherwise, use handleExerciseSelection (for workout mode)
-        if (onExerciseCreated) {
+        // If showSetConfiguration is true, show configuration screen first
+        // Otherwise, call onExerciseCreated for direct handling (plan mode)
+        if (showSetConfiguration) {
+          // For workout mode: directly show configuration screen
+          setSelectedExercise(result.exercise)
+        } else if (onExerciseCreated) {
+          // For plan mode: directly call callback
           onExerciseCreated(result.exercise)
         } else {
+          // Fallback: direct selection
           handleExerciseSelection(result.exercise.id, result.exercise.name)
         }
         

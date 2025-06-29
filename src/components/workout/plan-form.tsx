@@ -122,6 +122,23 @@ export function WorkoutPlanForm({
 
   // Add an exercise from suggestions
   const addSuggestedExercise = (exerciseId: string, exerciseName: string, sets = 3, reps = 10, weight?: number) => {
+    // Ensure the exercise is in our exercises list (in case of timing issues with state updates)
+    const exerciseExists = exercises.find(ex => ex.id === exerciseId)
+    
+    if (!exerciseExists) {
+      // If exercise doesn't exist in our list, create a minimal exercise object
+      // This can happen with newly created exercises due to state timing
+      const newExercise = {
+        id: exerciseId,
+        name: exerciseName,
+        description: null,
+        userId: '', // This will be set properly by the server
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+      setExercises(prev => [...prev, newExercise])
+    }
+
     // Add the exercise to the form
     form.setValue("exercises", [
       ...form.getValues("exercises"),
@@ -139,8 +156,8 @@ export function WorkoutPlanForm({
     // Update the local exercises list
     setExercises(prev => [...prev, newExercise])
     
-    // Add the new exercise to the form
-    addSuggestedExercise(newExercise.id, newExercise.name, 3, 10)
+    // No need to automatically add the exercise here - the configuration screen
+    // will handle adding it with the user's chosen sets/reps/weight values
   }
 
   // Remove an exercise from the form
@@ -333,7 +350,7 @@ export function WorkoutPlanForm({
         onExerciseCreated={handleExerciseCreated}
         title="Add Exercises"
         showCreateOption={true}
-        showSetConfiguration={false}
+        showSetConfiguration={true}
       />
     </>
   )

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { logExerciseProgressionAction } from "@/app/actions/exerciseActions"
-import type { Set } from "@prisma/client"
+import type { Set, Exercise } from "@prisma/client"
 import { completeWorkoutSessionAction, removeExerciseFromSessionAction, addExerciseToSessionAction } from "@/app/actions/workoutSessionActions"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
@@ -73,6 +73,7 @@ export function WorkoutSessionTracker({
   const [isCompletingWorkout, setIsCompletingWorkout] = useState(false)
   const [showAddExerciseDialog, setShowAddExerciseDialog] = useState(false)
   const [currentExercises, setCurrentExercises] = useState<ExerciseGroup[]>(exercises)
+  const [currentAvailableExercises, setCurrentAvailableExercises] = useState<AvailableExercise[]>(availableExercises)
   
   // Timer effect
   useEffect(() => {
@@ -343,6 +344,23 @@ export function WorkoutSessionTracker({
     }
   }
 
+  const handleExerciseCreated = async (newExercise: Exercise) => {
+    // Add the new exercise to the available exercises list
+    const newAvailableExercise: AvailableExercise = {
+      id: newExercise.id,
+      name: newExercise.name,
+      userId: newExercise.userId,
+      description: newExercise.description,
+      createdAt: newExercise.createdAt,
+      updatedAt: newExercise.updatedAt,
+    }
+    
+    setCurrentAvailableExercises(prev => [...prev, newAvailableExercise])
+    
+    // No need to trigger handleExerciseSelected here - the exercise picker
+    // will show the configuration screen and call onExerciseSelected when ready
+  }
+
   const handleRemoveExercise = async (exerciseId: string, exerciseName: string) => {
     if (!confirm(`Are you sure you want to remove "${exerciseName}" from this workout? All sets for this exercise will be deleted.`)) {
       return
@@ -411,8 +429,9 @@ export function WorkoutSessionTracker({
         <ExercisePickerDialog
           open={showAddExerciseDialog}
           onOpenChange={setShowAddExerciseDialog}
-          availableExercises={availableExercises}
+          availableExercises={currentAvailableExercises}
           onExerciseSelected={handleExerciseSelected}
+          onExerciseCreated={handleExerciseCreated}
           title="Add Exercise to Workout"
           showCreateOption={true}
           showSetConfiguration={true}
@@ -512,8 +531,9 @@ export function WorkoutSessionTracker({
       <ExercisePickerDialog
         open={showAddExerciseDialog}
         onOpenChange={setShowAddExerciseDialog}
-        availableExercises={availableExercises}
+        availableExercises={currentAvailableExercises}
         onExerciseSelected={handleExerciseSelected}
+        onExerciseCreated={handleExerciseCreated}
         title="Add Exercise to Workout"
         showCreateOption={true}
         showSetConfiguration={true}
