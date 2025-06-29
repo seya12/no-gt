@@ -28,7 +28,11 @@ export default async function StartWorkoutPage() {
       },
       _count: {
         select: {
-          sessions: true, // Count of workout sessions using this plan
+          sessions: {
+            where: {
+              completedAt: { not: null } // Only count completed sessions
+            }
+          },
         },
       },
     },
@@ -38,7 +42,7 @@ export default async function StartWorkoutPage() {
   })
   
   return (
-    <div className="container p-4 md:py-6 space-y-6">
+    <div className="container p-4 md:py-6 pb-24 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Start Workout</h1>
         <Link href="/workout/plans/new">

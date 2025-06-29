@@ -463,11 +463,19 @@ export function WorkoutSessionTracker({
 
       <SetCompletionDialog
         open={showCompletionDialog}
-        onOpenChange={setShowCompletionDialog}
+        onOpenChange={(open) => {
+          setShowCompletionDialog(open)
+          if (!open) {
+            quitExercise()
+          }
+        }}
         tempReps={tempReps}
         tempWeight={tempWeight}
         onConfirm={completeSet}
-        onCancel={() => setShowCompletionDialog(false)}
+        onCancel={() => {
+          setShowCompletionDialog(false)
+          quitExercise()
+        }}
         adjustTempReps={adjustTempReps}
         adjustTempWeight={adjustTempWeight}
         onTempRepsInputChange={setTempReps}
