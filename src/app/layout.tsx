@@ -37,7 +37,7 @@ export default function RootLayout({
                   <MainNav />
                 </div>
               </header>
-              <main className="flex-1 overflow-auto">
+              <main className="flex-1">
                 {children}
               </main>
               <BottomNav />
